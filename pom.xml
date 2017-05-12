@@ -84,8 +84,10 @@
 		<license.copyrightOwners>Board of Regents of the University of
 Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightOwners>
 		<license.projectName>ImageJ software for multidimensional image processing and analysis.</license.projectName>
+		<nd4j.backend>nd4j-native-platform</nd4j.backend>
+		<nd4j.version>0.8.0</nd4j.version>
 	</properties>
-
+	
 	<repositories>
 		<repository>
 			<id>imagej.public</id>
@@ -133,6 +135,12 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-legacy</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.nd4j</groupId>
+			<artifactId>nd4j-native</artifactId>
+			<version>${nd4j.version}</version>
 		</dependency>
 		
 	</dependencies>
