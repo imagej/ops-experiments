@@ -12,7 +12,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.complex.ComplexFloatType;
 import net.imglib2.util.Util;
 
-public class InteractiveJTransformTest {
+public class InteractiveFFTTest {
 
 	final static String inputName = "./bridge.tif";
 
@@ -27,18 +27,20 @@ public class InteractiveJTransformTest {
 
 		ij.ui().show("original", input);
 
-		final Img<ComplexFloatType> fft = (Img<ComplexFloatType>) ij.op().run(JFFTFloatRealForward2D.class, input);
+		final Img<ComplexFloatType> fft_jt = (Img<ComplexFloatType>) ij.op().run(JFFTFloatRealForward2D.class, input);
+		final Img<ComplexFloatType> fft_fftw = (Img<ComplexFloatType>) ij.op().run(FFTWFloatRealForward2D.class, input);
 
-		ImageJFunctions.show(fft).setTitle("fft power spectrum");
+		ImageJFunctions.show(fft_jt).setTitle("fft power spectrum jtransform");
+		ImageJFunctions.show(fft_fftw).setTitle("fft power spectrum fftw");
 
-		applyLowPass(fft, 40);
+		applyLowPass(fft_jt, 40);
 
-		final Img<T> output = (Img<T>) ij.op().run(JFFTFloatRealInverse2D.class, fft);
+		final Img<T> output = (Img<T>) ij.op().run(JFFTFloatRealInverse2D.class, fft_jt);
 
-		ij.ui().show(output);
+		ij.ui().show("low pass", output);
 
 	}
-
+	
 	private static <C extends ComplexType<C> & NativeType<C>> void applyLowPass(final Img<C> fft, final int radius) {
 		final Cursor<C> fftCursor = fft.cursor();
 

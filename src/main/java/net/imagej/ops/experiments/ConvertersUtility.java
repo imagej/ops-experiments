@@ -54,7 +54,7 @@ public class ConvertersUtility {
 		final int xd = (int) ii.dimension(0);
 		final int yd = (int) ii.dimension(1);
 
-		final float[] data = new float[xd * yd * 2];
+		final float[] data = new float[xd * yd];
 		final long[] pos = new long[2];
 
 		while (c.hasNext()) {
