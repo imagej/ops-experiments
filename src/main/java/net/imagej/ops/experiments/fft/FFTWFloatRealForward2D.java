@@ -29,7 +29,7 @@ public class FFTWFloatRealForward2D<C extends ComplexType<C>>
 		implements Ops.Filter.FFT, Contingent {
 
 	/**
-	 * Compute an 2D forward FFT using jtransform
+	 * Compute an 2D forward FFT using FFTW
 	 */
 	@Override
 	public Img<ComplexFloatType> calculate(final RandomAccessibleInterval<C> in) {
@@ -37,7 +37,7 @@ public class FFTWFloatRealForward2D<C extends ComplexType<C>>
 		try {
 			Loader.load(fftw3.class);
 
-			// TODO: the data needs to be a float array -- so we just convert it
+			// TODO: the data needs to be a float so we just convert it
 			// eventually should check to see if we have
 			// ArrayImg<FloatType,FloatArray> and
 			// if so we don't need to copy
