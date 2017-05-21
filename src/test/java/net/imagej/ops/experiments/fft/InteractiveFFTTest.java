@@ -3,7 +3,10 @@ package net.imagej.ops.experiments.fft;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
+import net.imagej.ops.special.function.Functions;
+import net.imagej.ops.special.function.UnaryFunctionOp;
 import net.imglib2.Cursor;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
@@ -16,31 +19,51 @@ public class InteractiveFFTTest {
 
 	final static String inputName = "./bridge.tif";
 
+	final static ImageJ ij = new ImageJ();
+
 	public static <T extends RealType<T> & NativeType<T>> void main(final String[] args) throws IOException {
-		final ImageJ ij = new ImageJ();
+
 		ij.launch(args);
 
 		System.out.println(System.getProperty("user.dir"));
 
 		@SuppressWarnings("unchecked")
-		final Img<T> input = (Img<T>) ij.dataset().open(inputName).getImgPlus().getImg();
+		final Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus().getImg();
 
-		ij.ui().show("original", input);
+		ij.ui().show("original", img);
 
-		final Img<ComplexFloatType> fft_jt = (Img<ComplexFloatType>) ij.op().run(JFFTFloatRealForward2D.class, input);
-		final Img<ComplexFloatType> fft_fftw = (Img<ComplexFloatType>) ij.op().run(FFTWFloatRealForward2D.class, input);
+		UnaryFunctionOp fftwRF = (UnaryFunctionOp) Functions.unary(ij.op(), FFTWFloatRealForward2D.class, Img.class,
+				img);
 
-		ImageJFunctions.show(fft_jt).setTitle("fft power spectrum jtransform");
-		ImageJFunctions.show(fft_fftw).setTitle("fft power spectrum fftw");
+		UnaryFunctionOp fftwRI = (UnaryFunctionOp) Functions.unary(ij.op(), FFTWFloatRealInverse2D.class,
+				RandomAccessibleInterval.class, Img.class);
 
-		applyLowPass(fft_jt, 40);
+		runFFTTest(fftwRF, fftwRI, img);
 
-		final Img<T> output = (Img<T>) ij.op().run(JFFTFloatRealInverse2D.class, fft_jt);
+		UnaryFunctionOp jfftRF = (UnaryFunctionOp) Functions.unary(ij.op(), JFFTFloatRealForward2D.class, Img.class,
+				img);
 
-		ij.ui().show("low pass", output);
+		UnaryFunctionOp jfftRI = (UnaryFunctionOp) Functions.unary(ij.op(), JFFTFloatRealInverse2D.class,
+				RandomAccessibleInterval.class, Img.class);
+
+		runFFTTest(jfftRF, jfftRI, img);
 
 	}
-	
+
+	private static <T extends RealType<T> & NativeType<T>> void runFFTTest(UnaryFunctionOp forward,
+			UnaryFunctionOp inverse, Img<T> img) {
+		final Img<ComplexFloatType> fftImg = (Img<ComplexFloatType>) forward.calculate(img);
+
+		ImageJFunctions.show(fftImg).setTitle("fft power spectrum: " + forward.getClass().toString());
+
+		applyLowPass(fftImg, 40);
+
+		final Img<T> filtered = (Img<T>) inverse.calculate(fftImg);
+
+		ij.ui().show("low pass: " + inverse.getClass().toString(), filtered);
+
+	}
+
 	private static <C extends ComplexType<C> & NativeType<C>> void applyLowPass(final Img<C> fft, final int radius) {
 		final Cursor<C> fftCursor = fft.cursor();
 

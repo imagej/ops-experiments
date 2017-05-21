@@ -45,6 +45,10 @@ public class JFFTFloatRealInverse2D<C extends ComplexType<C>> extends
 
 	@Override
 	public boolean conforms() {
+		if (this.in()==null) {
+			return true;
+		}
+		
 		if (this.in().numDimensions() != 2) {
 			return false;
 		}
