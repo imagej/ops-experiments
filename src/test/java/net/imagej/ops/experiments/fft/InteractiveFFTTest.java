@@ -23,6 +23,9 @@ public class InteractiveFFTTest {
 
 	public static <T extends RealType<T> & NativeType<T>> void main(final String[] args) throws IOException {
 
+		System.out.println();
+		System.out.println(System.getProperty("java.library.path"));
+
 		ij.launch(args);
 
 		System.out.println(System.getProperty("user.dir"));
@@ -32,6 +35,7 @@ public class InteractiveFFTTest {
 
 		ij.ui().show("original", img);
 
+		// Make FFTW forward and inverse ops and call the test
 		UnaryFunctionOp fftwRF = (UnaryFunctionOp) Functions.unary(ij.op(), FFTWFloatRealForward2D.class, Img.class,
 				img);
 
@@ -47,6 +51,14 @@ public class InteractiveFFTTest {
 				RandomAccessibleInterval.class, Img.class);
 
 		runFFTTest(jfftRF, jfftRI, img);
+
+		UnaryFunctionOp cufftRF = (UnaryFunctionOp) Functions.unary(ij.op(), CUFFTFloatRealForward2D.class, Img.class,
+				img);
+
+		UnaryFunctionOp cufftRI = (UnaryFunctionOp) Functions.unary(ij.op(), CUFFTFloatRealInverse2D.class,
+				RandomAccessibleInterval.class, Img.class);
+
+		runFFTTest(cufftRF, cufftRI, img);
 
 	}
 
@@ -83,5 +95,4 @@ public class InteractiveFFTTest {
 			}
 		}
 	}
-
 }

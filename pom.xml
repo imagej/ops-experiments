@@ -130,6 +130,20 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
             <artifactId>fftw-platform</artifactId>
             <version>3.3.5-1.3</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>cuda-platform</artifactId>
+            <version>8.0-6.0-1.3</version>
+        </dependency>
+        <!-- 
+        <dependency>
+    		<groupId>org.bytedeco.javacpp-presets</groupId>
+    		<artifactId>cuda</artifactId>
+    		<version>7.5-1.2</version>
+    		<classifier>windows-x86_64</classifier>
+		</dependency>
+		 -->
 
 		<!-- Test scope dependencies -->
 		<dependency>
