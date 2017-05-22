@@ -5,6 +5,13 @@ import static org.bytedeco.javacpp.fftw3.fftwf_destroy_plan;
 import static org.bytedeco.javacpp.fftw3.fftwf_execute;
 import static org.bytedeco.javacpp.fftw3.fftwf_plan_dft_c2r_2d;
 
+import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.javacpp.fftw3;
+import org.bytedeco.javacpp.fftw3.fftwf_plan;
+import org.scijava.Priority;
+import org.scijava.plugin.Plugin;
+
 import net.imagej.ops.Contingent;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.ConvertersUtility;
@@ -13,16 +20,8 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.ComplexType;
-import net.imglib2.type.numeric.complex.ComplexFloatType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
-
-import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.fftw3;
-import org.bytedeco.javacpp.fftw3.fftwf_plan;
-import org.scijava.Priority;
-import org.scijava.plugin.Plugin;
 
 @Plugin(type = Ops.Filter.IFFT.class, priority = Priority.LOW_PRIORITY)
 public class FFTWFloatRealInverse2D<C extends ComplexType<C>> extends
@@ -44,17 +43,14 @@ public class FFTWFloatRealInverse2D<C extends ComplexType<C>> extends
 			final FloatPointer p = new FloatPointer(in.dimension(0) * in.dimension(1) * 2);
 
 			p.put(data);
-			
+
 			// size of real signal
-			final int[] realSize = new int[] { ((int)in.dimension(0) - 1) * 2, (int)in.dimension(1) };
+			final int[] realSize = new int[] { ((int) in.dimension(0) - 1) * 2, (int) in.dimension(1) };
 
 			final FloatPointer pout = new FloatPointer(realSize[0] * realSize[1]);
 
-			p.put(data);
-
 			// create FFT plan
-			final fftwf_plan plan = fftwf_plan_dft_c2r_2d(realSize[0], realSize[1], p, pout,
-					(int) FFTW_ESTIMATE);
+			final fftwf_plan plan = fftwf_plan_dft_c2r_2d(realSize[0], realSize[1], p, pout, (int) FFTW_ESTIMATE);
 
 			fftwf_execute(plan);
 
@@ -67,7 +63,7 @@ public class FFTWFloatRealInverse2D<C extends ComplexType<C>> extends
 			FloatPointer.free(p);
 			FloatPointer.free(pout);
 
-			return ArrayImgs.floats(out, new long[]{realSize[0], realSize[1]});
+			return ArrayImgs.floats(out, new long[] { realSize[0], realSize[1] });
 
 		} catch (final Exception e) {
 			System.out.println(e);
@@ -78,11 +74,11 @@ public class FFTWFloatRealInverse2D<C extends ComplexType<C>> extends
 
 	@Override
 	public boolean conforms() {
-		
-		if (this.in()==null) {
+
+		if (this.in() == null) {
 			return true;
 		}
-		
+
 		if (this.in().numDimensions() != 2) {
 			return false;
 		}
