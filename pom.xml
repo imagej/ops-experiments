@@ -126,6 +126,12 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 		</dependency>
 		
 		<dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+		
+		<dependency>
             <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>fftw-platform</artifactId>
             <version>3.3.5-1.3</version>
@@ -164,4 +170,48 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 		</dependency>
 		
 	</dependencies>
+	
+	 <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+           <plugin>
+                <groupId>org.bytedeco</groupId>
+                <artifactId>javacpp</artifactId>
+                <version>1.3</version>
+                <configuration>
+                    <classPath>${project.build.outputDirectory}</classPath>
+                    <includePaths>
+                        <includePath>${project.build.sourceDirectory}</includePath>
+                    </includePaths>
+                    <copyLibs>true</copyLibs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>process-classes</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                        <configuration>
+                            <classOrPackageNames>
+                                <classOrPackageName>net.imagej.ops.experiments.javacpp.*</classOrPackageName>
+                            </classOrPackageNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+     </build>
 </project>

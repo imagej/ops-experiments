@@ -1,4 +1,5 @@
 *.log
+*~*
 
 # Maven #
 /target/
@@ -7,3 +8,9 @@
 /.classpath
 /.project
 /.settings/
+
+# binaries #
+*.exp
+*.dll
+*.lib
+*.obj
