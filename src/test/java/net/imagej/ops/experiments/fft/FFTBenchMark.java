@@ -41,6 +41,9 @@ import org.bytedeco.javacpp.fftw3;
 import org.bytedeco.javacpp.fftw3.fftwf_plan;
 import org.jtransforms.fft.FloatFFT_2D;
 
+import pl.edu.icm.jlargearrays.ConcurrencyUtils;
+import org.jtransforms.utils.CommonUtils;
+
 public class FFTBenchMark {
 
 	final static ImageJ ij = new ImageJ();
@@ -74,15 +77,26 @@ public class FFTBenchMark {
 		}
 
 		final FloatFFT_2D jfft = new FloatFFT_2D(dims.dimension(0), dims.dimension(1));
+		
+		int nthread=4;
+		int threadsBegin2D=65536;
+		int threadsBegin3D=65536;
+		
+		
+		ConcurrencyUtils.setNumberOfThreads(nthread);
+		CommonUtils.setThreadsBeginN_2D(threadsBegin2D);
+		CommonUtils.setThreadsBeginN_3D(threadsBegin3D);
 
-		long startTime = System.currentTimeMillis();
+		long startTime = System.nanoTime();
 
 		for (final float[] data : floatArrays) {
 			jfft.realForward(data);
 		}
 
-		System.out.println("JTransform execution time: " + (System.currentTimeMillis() - startTime));
+		System.out.println("JTransform execution time: " + ((float)(System.nanoTime() - startTime))/1000000);
 
+		// Start FFTW Benchmark
+		
 		// convert to FloatPointer
 		final FloatPointer p = new FloatPointer(dims.dimension(0) * dims.dimension(1));
 
@@ -99,18 +113,22 @@ public class FFTBenchMark {
 		final fftwf_plan plan = fftwf_plan_dft_r2c_2d((int) dims.dimension(0), (int) dims.dimension(1), p, pout,
 				(int) FFTW_ESTIMATE);
 
-		startTime = System.currentTimeMillis();
+		startTime = System.nanoTime();
 
 		for (final float[] data : floatArrays) {
 			p.put(data);
 			fftwf_execute(plan);
 		}
 
-		System.out.println("FFTW execution time: " + (System.currentTimeMillis() - startTime));
+		System.out.println("FFTW execution time: " + ((float)(System.nanoTime() - startTime))/1000000);
 
 		fftwf_destroy_plan(plan);
 
 		FloatPointer.free(p);
+		
+		// end FFTW benchmark
+		
+		// Start CUFFT benchmark
 		
 		benchMarkOpsFFT(images);
 
@@ -149,14 +167,14 @@ public class FFTBenchMark {
 		// create the complex output
 		final RandomAccessibleInterval<ComplexFloatType> output = createOp.calculate(images.get(0));
 
-		final long startTime = System.currentTimeMillis();
+		final long startTime = System.nanoTime();
 
 		for (final Img image : images) {
 			
 			fft.compute(padOp.calculate(image, image), output);
 		}
 		
-		System.out.println("FFT Methods Computer Op execution time: " + (System.currentTimeMillis() - startTime));
+		System.out.println("FFT Methods Computer Op execution time: " + ((float)(System.nanoTime() - startTime))/1000000);
 	}
 
 }
