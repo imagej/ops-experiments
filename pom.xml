@@ -123,14 +123,7 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
         	<groupId>com.github.wendykierp</groupId>
         	<artifactId>JTransforms</artifactId>
         	<version>3.1</version>
-        	<classifier>with-dependencies</classifier>
-    	</dependency>
-		
-		<!-- <dependency>
-			<groupId>com.github.wendykierp</groupId>
-			<artifactId>JTransforms</artifactId>
-			<version>3.0</version>
-		</dependency> -->
+     	</dependency>
 		
 		<dependency>
             <groupId>org.bytedeco</groupId>
