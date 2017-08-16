@@ -169,6 +169,12 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 			<version>${nd4j.version}</version>
 		</dependency>
 		
+		<dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>mkl-platform</artifactId>
+            <version>2017.2-1.3.3-SNAPSHOT</version>
+        </dependency>
+		
 	</dependencies>
 	
 	 <build>
@@ -207,9 +213,15 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                         <configuration>
                             <classOrPackageNames>
                                 <classOrPackageName>net.imagej.ops.experiments.javacpp.*</classOrPackageName>
+                                <classOrPackageName>net.imagej.ops.experiments.fft.MKLFFTWFloatRealForward2DWrapper</classOrPackageName>
+                                <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper</classOrPackageName>
+                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyWrapper</classOrPackageName>
+                            
                             </classOrPackageNames>
                         </configuration>
                     </execution>
+                    
+                                
                 </executions>
             </plugin>
         </plugins>

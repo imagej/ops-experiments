@@ -15,6 +15,8 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.complex.ComplexFloatType;
 import net.imglib2.util.Util;
 
+import org.bytedeco.javacpp.Loader;
+
 public class InteractiveFFTTest {
 
 	final static String inputName = "./bridge.tif";
@@ -34,6 +36,18 @@ public class InteractiveFFTTest {
 		final Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus().getImg();
 
 		ij.ui().show("original", img);
+		
+		
+		
+		UnaryFunctionOp fftwMKL = (UnaryFunctionOp) Functions.unary(ij.op(), MKLFFTWFloatRealForward2D.class, Img.class,
+				img);
+		
+		
+		
+		runFFTTest(fftwMKL,null, img);
+/*
+		UnaryFunctionOp fftwRF = (UnaryFunctionOp) Functions.unary(ij.op(), FFTWFloatRealForward2D.class, Img.class,
+				img);
 
 		// Make FFTW forward and inverse ops and call the test
 		UnaryFunctionOp fftwRF = (UnaryFunctionOp) Functions.unary(ij.op(), FFTWFloatRealForward2D.class, Img.class,
@@ -58,7 +72,7 @@ public class InteractiveFFTTest {
 		UnaryFunctionOp cufftRI = (UnaryFunctionOp) Functions.unary(ij.op(), CUFFTFloatRealInverse2D.class,
 				RandomAccessibleInterval.class, Img.class);
 
-		runFFTTest(cufftRF, cufftRI, img);
+		runFFTTest(cufftRF, cufftRI, img);*/
 
 	}
 
@@ -68,12 +82,13 @@ public class InteractiveFFTTest {
 
 		ImageJFunctions.show(fftImg).setTitle("fft power spectrum: " + forward.getClass().toString());
 
-		applyLowPass(fftImg, 40);
-
-		final Img<T> filtered = (Img<T>) inverse.calculate(fftImg);
-
-		ij.ui().show("low pass: " + inverse.getClass().toString(), filtered);
-
+		if (inverse != null) {
+			applyLowPass(fftImg, 40);
+	
+			final Img<T> filtered = (Img<T>) inverse.calculate(fftImg);
+	
+			ij.ui().show("low pass: " + inverse.getClass().toString(), filtered);
+		}
 	}
 
 	private static <C extends ComplexType<C> & NativeType<C>> void applyLowPass(final Img<C> fft, final int radius) {
