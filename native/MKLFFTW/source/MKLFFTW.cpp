@@ -49,10 +49,10 @@ __declspec(dllexport) void mklConvolve(float * x, float *h, float * X_, float * 
 
 __declspec(dllexport) void mklRichardsonLucy3D(float * x, float *h, float*y, fftwf_complex* FFT_, fftwf_complex* H_,const int n0, const int n1, const int n2) {
 
-	printf("starting mklrl 3D\n");
+	printf("starting mklrl 3D - ImageJ Version\n");
     
     const int imageSize=n0*n1*n2;
-    const int fftSize=(n0/2+1)*n1*n2;
+    const int fftSize=n0*n1*(n2/2+1);
     
     float * temp = (float*)malloc(sizeof(float)*n0*n1*n2);
 

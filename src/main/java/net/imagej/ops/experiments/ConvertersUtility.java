@@ -193,6 +193,37 @@ public class ConvertersUtility {
 	}
 	
 	/**
+	 * Converts from an II to a FloatPointer
+	 * 
+	 * @param ii
+	 * @return FloatPointer containing the image data
+	 */
+	static public <T extends ComplexType<T>> FloatPointer ii3DToFloatPointer(final IterableInterval<T> ii) {
+		final Cursor<T> c = ii.cursor();
+
+		final int xd = (int) ii.dimension(0);
+		final int yd = (int) ii.dimension(1);
+		final int zd = (int) ii.dimension(2);
+
+		final long[] pos = new long[3];
+
+		FloatPointer imgfp = new FloatPointer(ii.dimension(0) * ii.dimension(1)*ii.dimension(2));
+
+		while (c.hasNext()) {
+			c.fwd();
+			c.localize(pos);
+
+			final int index = (int) (pos[0] + pos[1] * xd+pos[2]*xd*yd);
+
+			imgfp.put(index, c.get().getRealFloat());
+
+		}
+
+		return imgfp;
+
+	}
+	
+	/**
 	 * Converts from a complex II to a FloatPointer
 	 * 
 	 * @param ii
