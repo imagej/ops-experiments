@@ -200,7 +200,12 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                     <classPath>${project.build.outputDirectory}</classPath>
                     <includePaths>
                         <includePath>${project.build.sourceDirectory}</includePath>
+                        <includePath>${basedir}/native/MKLFFTW/source/</includePath>
+                        <includePath>${basedir}/JavaCppNative/</includePath>
                     </includePaths>
+                    <linkPaths>
+                    	<linkPath>${basedir}/../ops-experiments-bin/MKLFFTW/Debug/</linkPath>
+                    </linkPaths>
                     <copyLibs>true</copyLibs>
                 </configuration>
                 <executions>
