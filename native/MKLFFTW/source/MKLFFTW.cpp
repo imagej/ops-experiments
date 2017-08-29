@@ -77,6 +77,7 @@ __declspec(dllexport) void mklRichardsonLucy3D(float * x, float *h, float*y, fft
         // create reblurred
         
         printf("iteration %d\n", i);
+        fflush(stdout);
        
         fftwf_execute(forward1);
 
