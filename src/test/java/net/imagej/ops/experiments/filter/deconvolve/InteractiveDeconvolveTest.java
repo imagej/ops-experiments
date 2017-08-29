@@ -27,6 +27,8 @@ public class InteractiveDeconvolveTest {
 
 		ij.launch(args);
 		
+		ij.log().error("Start Richardson Lucy");
+		
 		MKLRichardsonLucyWrapper.load();
 
 		@SuppressWarnings("unchecked")
