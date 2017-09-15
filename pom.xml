@@ -201,10 +201,12 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                     <includePaths>
                         <includePath>${project.build.sourceDirectory}</includePath>
                         <includePath>${basedir}/native/MKLFFTW/source/</includePath>
+                        <includePath>${basedir}/cuda/YacuDecuWrapper/</includePath>
                         <includePath>${basedir}/JavaCppNative/</includePath>
                     </includePaths>
                     <linkPaths>
                     	<linkPath>${basedir}/../ops-experiments-bin/MKLFFTW/Debug/</linkPath>
+                    	<linkPath>${basedir}/../ops-experiments-bin-cuda/YacuDecuWrapper/Release/</linkPath>
                     </linkPaths>
                     <copyLibs>true</copyLibs>
                 </configuration>
@@ -221,6 +223,7 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                                 <classOrPackageName>net.imagej.ops.experiments.fft.MKLFFTWFloatRealForward2DWrapper</classOrPackageName>
                                 <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper</classOrPackageName>
                             	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyWrapper</classOrPackageName>
+                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.CudaRichardsonLucyWrapper</classOrPackageName>
                             
                             </classOrPackageNames>
                         </configuration>
