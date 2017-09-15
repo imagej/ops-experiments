@@ -42,6 +42,9 @@ public class CUFFTFloatRealForward2D<C extends ComplexType<C>>
 	public Img<ComplexFloatType> calculate(final RandomAccessibleInterval<C> in) {
 
 		try {
+			
+			String libPathProperty = System.getProperty("java.library.path");
+	        System.out.println(libPathProperty);
 
 			// convert to device (cuda) FloatPointer
 			final FloatPointer p = ConvertersUtility.ii2DToDeviceFloatPointer(Views.zeroMin(in));

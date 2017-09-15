@@ -11,6 +11,7 @@ import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 
 import org.bytedeco.javacpp.FloatPointer;
@@ -40,11 +41,11 @@ public class InteractiveConvolveTest {
 
 		ij.ui().show("original", Views.zeroMin(extendedImg));
 
-		Img<T> kernel = (Img<T>) ij.op().create().kernelGauss(3, 3);
+		Img<DoubleType> kernel = (Img<DoubleType>) ij.op().create().kernelGauss(3, 3);
 
 		ij.ui().show(kernel);
 
-		RandomAccessibleInterval<T> extendedKernel = ij.op().filter().padShiftFFTKernel(kernel,
+		RandomAccessibleInterval<DoubleType> extendedKernel = ij.op().filter().padShiftFFTKernel(kernel,
 				new FinalDimensions(img.dimension(0), img.dimension(1)));
 
 		//ij.ui().show(extended);

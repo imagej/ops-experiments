@@ -19,7 +19,7 @@ public class MKLRichardsonLucyWrapper {
 		Loader.load();
 	}
 
-	public static native void mklRichardsonLucy3D(FloatPointer x, FloatPointer h, FloatPointer y, @Cast("fftwf_complex*") FloatPointer FFT_,
+	public static native void mklRichardsonLucy3D(int iterations, FloatPointer x, FloatPointer h, FloatPointer y, @Cast("fftwf_complex*") FloatPointer FFT_,
 			@Cast("fftwf_complex*") FloatPointer H_, int n0, int n1, int n2);
 
 	public static void load() {

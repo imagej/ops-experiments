@@ -3,6 +3,7 @@ package net.imagej.ops.experiments.filter.deconvolve;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
+import net.imagej.ops.Ops.Filter.PadShiftFFTKernel;
 import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper;
 import net.imglib2.FinalDimensions;
@@ -16,7 +17,7 @@ import net.imglib2.view.Views;
 
 import org.bytedeco.javacpp.FloatPointer;
 
-public class InteractiveDeconvolveTest {
+public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 	final static String inputName = "../ops-images/deconvolvolution/Bars-G10-P15-stack.tif";
 	final static String psfName = "../ops-images/deconvolvolution/PSF-Bars-stack.tif";
@@ -24,74 +25,158 @@ public class InteractiveDeconvolveTest {
 	final static ImageJ ij = new ImageJ();
 
 	public static <T extends RealType<T> & NativeType<T>> void main(final String[] args) throws IOException {
-
-		ij.launch(args);
-		
-		ij.log().error("Start Richardson Lucy");
-		
-		MKLRichardsonLucyWrapper.load();
+		String libPathProperty = System.getProperty("java.library.path");
+		System.out.println(libPathProperty);
 
 		@SuppressWarnings("unchecked")
-		final Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus().getImg();
+		Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus().getImg();
+		Img<FloatType> imgF = ij.op().convert().float32(img);
 
 		@SuppressWarnings("unchecked")
 		final Img<T> psf = (Img<T>) ij.dataset().open(psfName).getImgPlus().getImg();
-		Img<FloatType> psfF=ij.op().convert().float32(psf);
-		
-		FloatType sum=new FloatType(ij.op().stats().sum(psfF).getRealFloat());
-		psfF=(Img<FloatType>)ij.op().math().divide(psfF, sum);
+
+		Img<FloatType> psfF = ij.op().convert().float32(psf);
+		FloatType sum = new FloatType(ij.op().stats().sum(psfF).getRealFloat());
+		psfF = (Img<FloatType>) ij.op().math().divide(psfF, sum);
+
+		RandomAccessibleInterval<FloatType> shiftedPSF = (RandomAccessibleInterval<FloatType>) ij.op().run(
+				PadShiftFFTKernel.class, psfF,
+				new FinalDimensions(img.dimension(0), img.dimension(1), img.dimension(2)));
+
+		ij.ui().show("shifted PSF", Views.zeroMin(shiftedPSF));
 
 		ij.ui().show("bars", img);
-		ij.ui().show("psf", psfF);
+		ij.ui().show("psfF", psf);
+		ij.ui().show("shifted psf", psf);
 
-		RandomAccessibleInterval<T> extendedImg = ij.op().filter().padFFTInput(img,
-				new FinalDimensions(img.dimension(0), img.dimension(1), img.dimension(2)));
+		ij.launch(args);
+		
+		int iterations=100;
 
-		ij.ui().show("extended image", Views.zeroMin(extendedImg));
+		testOpsRL(imgF, psfF, iterations);
+		testCudaRL(imgF, shiftedPSF, iterations);
+		//testMKLRL(imgF, shiftedPSF, iterations);
+		//testMKLRL(imgF, shiftedPSF, iterations);
+		
+	}
 
-		RandomAccessibleInterval<FloatType> extendedPSF = ij.op().filter().padShiftFFTKernel(psfF,
-				new FinalDimensions(img.dimension(0), img.dimension(1), img.dimension(2)));
+	public static <T extends RealType<T> & NativeType<T>> void testCudaRL(Img<FloatType> img,
+			RandomAccessibleInterval<FloatType> shiftedPSFF, int iterations) throws IOException {
 
-		// ij.ui().show(extended);
+		ij.log().info("Cuda Richardson Lucy");
 
-		ij.ui().show("extended PSF",Views.zeroMin(extendedPSF));
+		CudaRichardsonLucyWrapper.load();
 
 		// convert image to FloatPointer
-		final FloatPointer x = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(extendedImg));
+		final FloatPointer x = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(img));
 
 		// convert PSF to FloatPointer
-		final FloatPointer h = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(extendedPSF));
+		final FloatPointer h = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(shiftedPSFF));
 
-		final FloatPointer y = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(extendedImg));
+		final FloatPointer y = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(img));
 
-		// output size of FFT see
-		// http://www.fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html
-		final long[] fftSize = new long[] { extendedImg.dimension(0)/2+1, extendedImg.dimension(1),
-				extendedImg.dimension(2) };
+		ij.log().info("starting Cuda decon\n");
 
-		final FloatPointer X_ = new FloatPointer(2 * (fftSize[0] * fftSize[1] * fftSize[2]));
+		final long startTime = System.currentTimeMillis();
 
-		final FloatPointer H_ = new FloatPointer(2 * (fftSize[0] * fftSize[1] * fftSize[2]));
+		CudaRichardsonLucyWrapper.deconv_device(iterations, (int) img.dimension(2), (int) img.dimension(1),
+				(int) img.dimension(0), x, h, y);
 
-		
-		MKLRichardsonLucyWrapper.mklRichardsonLucy3D(x, h, y, X_, H_, (int) extendedImg.dimension(2),
-				(int) extendedImg.dimension(1), (int) extendedImg.dimension(0));
-		
-		final float[] deconvolved = new float[(int)(extendedImg.dimension(0)*extendedImg.dimension(1)*extendedImg.dimension(2)) ];
-		
+		final long endTime = System.currentTimeMillis();
+
+		ij.log().info("Total execution time (Cuda) is: " + (endTime - startTime));
+
+		final float[] deconvolved = new float[(int) (img.dimension(0) * img.dimension(1) * img.dimension(2))];
+
 		y.get(deconvolved);
 
 		FloatPointer.free(x);
 		FloatPointer.free(h);
 		FloatPointer.free(y);
-		FloatPointer.free(X_);
-		FloatPointer.free(H_);
-		
-		long[] imgSize=new long[]{extendedImg.dimension(0), extendedImg.dimension(1), extendedImg.dimension(2)};
 
-		Img out=ArrayImgs.floats(deconvolved, imgSize);
+		long[] imgSize = new long[] { img.dimension(0), img.dimension(1), img.dimension(2) };
+
+		Img out = ArrayImgs.floats(deconvolved, imgSize);
+
+		ij.ui().show("Cuda Deconvolved", out);
+
+	}
+
+	public static <T extends RealType<T> & NativeType<T>> void testMKLRL(Img<FloatType> img,
+			RandomAccessibleInterval<FloatType> psfShiftF, int iterations) throws IOException {
+
+		MKLRichardsonLucyWrapper.load();
+
+		// convert image to FloatPointer
+		final FloatPointer x = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(img));
+
+		// convert PSF to FloatPointer
+		final FloatPointer h = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(psfShiftF));
+
+		final FloatPointer y = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(img));
+
+		final long[] fftSize = new long[] { img.dimension(0) / 2 + 1, img.dimension(1), img.dimension(2) };
+
+		final FloatPointer X_ = new FloatPointer(2 * (fftSize[0] * fftSize[1] * fftSize[2]));
+
+		final FloatPointer H_ = new FloatPointer(2 * (fftSize[0] * fftSize[1] * fftSize[2]));
+
+		ij.log().info("Starting MKL decon");
+
+		final long startTime = System.currentTimeMillis();
+
+		MKLRichardsonLucyWrapper.mklRichardsonLucy3D(iterations, x, h, y, X_, H_, (int) img.dimension(2), (int) img.dimension(1),
+				(int) img.dimension(0));
+
+		final long endTime = System.currentTimeMillis();
+
+		ij.log().info("Total execution time (MKL) is: " + (endTime - startTime));
+
+		final float[] deconvolved = new float[(int) (img.dimension(0) * img.dimension(1) * img.dimension(2))];
+
+		ij.log().info("start");
 		
-		ij.ui().show("deconvolved",out);
+		y.get(deconvolved);
+
+		ij.log().info("1");
+		
+		FloatPointer.free(X_);
+		ij.log().info("2");
+		
+		FloatPointer.free(H_);
+		ij.log().info("3");
+		
+		FloatPointer.free(x);
+		ij.log().info("4");
+		
+		FloatPointer.free(h);
+		ij.log().info("5");
+		
+		FloatPointer.free(y);
+
+		long[] imgSize = new long[] { img.dimension(0), img.dimension(1), img.dimension(2) };
+
+		Img out = ArrayImgs.floats(deconvolved, imgSize);
+
+		ij.ui().show("deconvolved", out);
+
+	}
+
+	public static <T extends RealType<T> & NativeType<T>> void testOpsRL(Img<FloatType> imgF, Img<FloatType> psfF, int iterations)
+			throws IOException {
+
+		ij.log().info("Starting Ops Richardson Lucy");
+
+		final long startTime = System.currentTimeMillis();
+
+		Img<FloatType> deconvolved = (Img<FloatType>) ij.op().deconvolve().richardsonLucy(imgF, psfF,
+				new long[] { 0, 0, 0 }, iterations);
+
+		final long endTime = System.currentTimeMillis();
+
+		ij.log().info("Total execution time (Ops) is: " + (endTime - startTime));
+
+		ij.ui().show("Richardson Lucy deconvolved", deconvolved);
 
 	}
 

@@ -47,7 +47,7 @@ __declspec(dllexport) void mklConvolve(float * x, float *h, float * X_, float * 
 
 }
 
-__declspec(dllexport) void mklRichardsonLucy3D(float * x, float *h, float*y, fftwf_complex* FFT_, fftwf_complex* H_,const int n0, const int n1, const int n2) {
+__declspec(dllexport) void mklRichardsonLucy3D(int iterations, float * x, float *h, float*y, fftwf_complex* FFT_, fftwf_complex* H_,const int n0, const int n1, const int n2) {
 
 	printf("starting mklrl 3D - ImageJ Version\n");
     
@@ -73,7 +73,7 @@ __declspec(dllexport) void mklRichardsonLucy3D(float * x, float *h, float*y, fft
 
     // iterations
     
-    for (int i=0;i<10;i++) {
+    for (int i=0;i<iterations;i++) {
         // create reblurred
         
         printf("iteration %d\n", i);
