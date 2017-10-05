@@ -86,6 +86,9 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 		<license.projectName>ImageJ software for multidimensional image processing and analysis.</license.projectName>
 		<nd4j.backend>nd4j-native-platform</nd4j.backend>
 		<nd4j.version>0.8.0</nd4j.version>
+
+		<!-- NB: Deploy releases to the ImageJ Maven repository. -->
+		<releaseProfiles>deploy-to-imagej</releaseProfiles>
 	</properties>
 	
 	<repositories>
