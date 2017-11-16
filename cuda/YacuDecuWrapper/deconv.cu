@@ -10,6 +10,7 @@
 
 
 #include <stdio.h>
+#include <iostream>
 #include <cuda_runtime.h>
 #include <cuda_profiler_api.h>
 #include <cufft.h>
@@ -67,6 +68,7 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
     cudaError_t err;
     cufftHandle planR2C, planC2R;
 
+	std::cout<<"Arrived in Cuda deconvolution\n";
 	printf("input size: %d %d %d, N1, N2, N3");
 
     float *image = 0; // convolved image (constant)
@@ -96,8 +98,12 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 
     printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
     printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
+	fflush(stdin);
 
-    cudaDeviceReset();
+	std::cout<<"N: "<<nSpatial<<" M: "<<mSpatial<<"\n"<<std::flush;
+	std::cout<<"Blocks: "<<spatialBlocks.x<<" x "<<spatialBlocks.y<<" x "<<spatialBlocks.z<<", Threads: "<<spatialThreadsPerBlock.x<<" x "<<spatialThreadsPerBlock.y<<" x "<<spatialThreadsPerBlock.z<<"\n";
+    
+	cudaDeviceReset();
 
     cudaProfilerStart();
 
@@ -148,6 +154,8 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
         // BN flush the buffer for debugging in Java.
         fflush(stdout);
         
+		std::cout<<"Iteration "<<i<<"\n"<<std::flush;
+
 		r = cufftExecR2C(planR2C, object, (cufftComplex*)buf);
         if(r) goto cufftError;
         
