@@ -9,7 +9,7 @@ import org.bytedeco.javacpp.annotation.Properties;
 @Properties(value = {
 		@Platform(include = "deconv.h", link = {"YacuDecu","cudart","cufft"}),
 		@Platform(value = "windows-x86_64", linkpath = {
-				"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/lib/x64/"})})
+				"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v9.0/lib/x64/"})})
 public class CudaRichardsonLucyWrapper {
 
 	static {

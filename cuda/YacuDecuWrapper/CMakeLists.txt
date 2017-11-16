@@ -1,12 +1,13 @@
 # this project is used to wrap YacuDecu cuda deconvolution by Bob Pepin
-project(YacuDecuWrapperProject)
-
-# Find Cuda
-find_package(CUDA REQUIRED)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+project(YacuDecuWrapperProject LANGUAGES CXX CUDA)
 
 # add the cuda library
-cuda_add_library(YacuDecu deconv.cu)
-CUDA_ADD_CUFFT_TO_TARGET( YacuDecu )
+add_library(YacuDecu deconv.cu)
+#CUDA_ADD_CUFFT_TO_TARGET( YacuDecu )
+
+#set_property(TARGET YacuDecu
+#             PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 set(LIB_PATH ${CMAKE_CURRENT_BINARY_DIR}/lib)
 
