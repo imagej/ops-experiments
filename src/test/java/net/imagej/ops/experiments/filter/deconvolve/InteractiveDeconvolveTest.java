@@ -26,8 +26,10 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 	public static <T extends RealType<T> & NativeType<T>> void main(final String[] args) throws IOException {
 		String libPathProperty = System.getProperty("java.library.path");
-		System.out.println(libPathProperty);
+		System.out.println("Lib path:"+libPathProperty);
 
+		ij.launch(args);
+		
 		@SuppressWarnings("unchecked")
 		Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus().getImg();
 		Img<FloatType> imgF = ij.op().convert().float32(img);
@@ -35,10 +37,14 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 		@SuppressWarnings("unchecked")
 		final Img<T> psf = (Img<T>) ij.dataset().open(psfName).getImgPlus().getImg();
 
+		// convert PSF to float
 		Img<FloatType> psfF = ij.op().convert().float32(psf);
+		
+		// normalize PSF
 		FloatType sum = new FloatType(ij.op().stats().sum(psfF).getRealFloat());
 		psfF = (Img<FloatType>) ij.op().math().divide(psfF, sum);
 
+		// shift PSF so that the center is at 0,0,0
 		RandomAccessibleInterval<FloatType> shiftedPSF = (RandomAccessibleInterval<FloatType>) ij.op().run(
 				PadShiftFFTKernel.class, psfF,
 				new FinalDimensions(img.dimension(0), img.dimension(1), img.dimension(2)));
@@ -47,9 +53,6 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		ij.ui().show("bars", img);
 		ij.ui().show("psfF", psf);
-		ij.ui().show("shifted psf", psf);
-
-		ij.launch(args);
 		
 		int iterations=100;
 
