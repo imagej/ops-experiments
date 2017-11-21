@@ -101,6 +101,11 @@ public class FFTBenchMark {
 		ConcurrencyUtils.setNumberOfThreads(nthread);
 		CommonUtils.setThreadsBeginN_2D(threadsBegin2D);
 		CommonUtils.setThreadsBeginN_3D(threadsBegin3D);
+		
+		// jtransform warm up loop
+		for (final float[] data : floatArrays) {
+			jfft.realForward(data);
+		}
 
 		long startTime = System.nanoTime();
 
@@ -125,6 +130,12 @@ public class FFTBenchMark {
 			// create FFT plan
 			final fftwf_plan plan = fftwf_plan_dft_r2c_2d((int) dims.dimension(0), (int) dims.dimension(1), p, pout,
 					(int) FFTW_ESTIMATE);
+			
+			// fftw warm up loop
+			for (final float[] data : floatArrays) {
+				p.put(data);
+				fftwf_execute(plan);
+			}
 
 			startTime = System.nanoTime();
 
@@ -167,13 +178,21 @@ public class FFTBenchMark {
 		final org.bytedeco.javacpp.cufftw.fftwf_plan plancufft = org.bytedeco.javacpp.cufftw.fftwf_plan_dft_r2c_2d(
 				(int) dims.dimension(0), (int) dims.dimension(1), pDevice, poutDevice,
 				(int) org.bytedeco.javacpp.cufftw.FFTW_ESTIMATE);
+		
+		// warm up
+		for (final FloatPointer pHost : floatPointers) {
+
+			CudaUtility.checkCudaErrors(cudaMemcpy(pDevice, pHost, size * Float.BYTES, cudaMemcpyHostToDevice));
+			
+			org.bytedeco.javacpp.cufftw.fftwf_execute_dft_r2c(plancufft, pDevice, poutDevice);
+		}
 
 		startTime = System.nanoTime();
 
 		for (final FloatPointer pHost : floatPointers) {
 
 			CudaUtility.checkCudaErrors(cudaMemcpy(pDevice, pHost, size * Float.BYTES, cudaMemcpyHostToDevice));
-			// fftwf_execute(plan);
+			
 			org.bytedeco.javacpp.cufftw.fftwf_execute_dft_r2c(plancufft, pDevice, poutDevice);
 		}
 
