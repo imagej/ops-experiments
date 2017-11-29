@@ -67,10 +67,16 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 		int iterations = 100;
 
 		// run Cuda Richardson Lucy op
-		RandomAccessibleInterval<FloatType> output = (RandomAccessibleInterval<FloatType>) ij.op()
-				.run(CudaRichardsonLucyOp.class, imgF, psfF, 100, new long[] { 0, 0, 0 });
+		RandomAccessibleInterval<FloatType> outputCuda = (RandomAccessibleInterval<FloatType>) ij.op()
+				.run(CudaRichardsonLucyOp.class, imgF, psfF,new long[] { 0, 0, 0 }, 100 );
 
-		ij.ui().show("cuda op deconvolved", output);
+		ij.ui().show("cuda op deconvolved", outputCuda);
+
+		// run MKL Richardson Lucy op
+		RandomAccessibleInterval<FloatType> outputMKL = (RandomAccessibleInterval<FloatType>) ij.op()
+				.run(MKLRichardsonLucyOp.class, imgF, psfF, new long[] { 0, 0, 0 },100 );
+		
+		ij.ui().show("mkl op deconvolved", outputMKL);
 
 		// testOpsRL(imgF, psfF, iterations, 0);
 		// testCudaRL(extendedImage, shiftedPSF, iterations);
