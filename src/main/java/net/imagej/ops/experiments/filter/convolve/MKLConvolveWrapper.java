@@ -19,7 +19,7 @@ public class MKLConvolveWrapper {
 	}
 	
 	public static native void mklConvolve
-	(FloatPointer x, FloatPointer h, FloatPointer X_, FloatPointer H_, int width, int height);
+	(FloatPointer x, FloatPointer h, FloatPointer y, FloatPointer X_, FloatPointer H_, int width, int height);
 	
 	public static void load() {
 		Loader.load();

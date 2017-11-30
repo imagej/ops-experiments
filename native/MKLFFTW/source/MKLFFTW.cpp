@@ -19,7 +19,7 @@ __declspec(dllexport) void testMKLFFTW(float * x_, float * y_, int width, int he
 
 }
 
-__declspec(dllexport) void mklConvolve(float * x, float *h, float * X_, float * H_, const int width, const int height) {
+__declspec(dllexport) void mklConvolve(float * x, float *h, float *y, float * X_, float * H_, const int width, const int height) {
 
 	printf("starting mkl fftwf");
 
@@ -29,7 +29,7 @@ __declspec(dllexport) void mklConvolve(float * x, float *h, float * X_, float * 
 	fftwf_plan forward2 = fftwf_plan_dft_r2c_2d(width, height, h, (fftwf_complex*)H_,
 		(int)FFTW_ESTIMATE);
 
-	fftwf_plan inverse = fftwf_plan_dft_c2r_2d(width, height, (fftwf_complex*)X_, x, (int)FFTW_ESTIMATE);
+	fftwf_plan inverse = fftwf_plan_dft_c2r_2d(width, height, (fftwf_complex*)X_, y, (int)FFTW_ESTIMATE);
 
 	fftwf_execute(forward1);
 	fftwf_execute(forward2);
