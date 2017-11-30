@@ -24,6 +24,7 @@ import org.bytedeco.javacpp.Pointer;
 
 /**
  * Abstract class for Native FFT filters based on the JavaCpp framework
+ * 
  * @author bnorthan
  *
  * @param <I>
@@ -59,35 +60,65 @@ public abstract class AbstractNativeFFTFilterF<I extends RealType<I>, O extends 
 	@Override
 	public void computeFilter(final RandomAccessibleInterval<I> input, final RandomAccessibleInterval<K> kernel,
 			RandomAccessibleInterval<O> output, long[] paddedSize) {
-		
+
 		// load native libraries, this is required before using FloatPointers
 		loadNativeLibraries();
 
-		// convert image to FloatPointer
-		final FloatPointer fpInput = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(input));
+		FloatPointer fpInput = null;
+		FloatPointer fpKernel = null;
+		FloatPointer fpOutput = null;
 
-		// convert PSF to FloatPointer
-		final FloatPointer fpKernel = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(kernel));
+		if (input.numDimensions() == 2) {
+			// convert image to FloatPointer
+			fpInput = ConvertersUtility.ii2DToFloatPointer(Views.zeroMin(input));
 
-		// get a FloatPointer for the output
-		final FloatPointer fpOutput = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(input));
+			// convert PSF to FloatPointer
+			fpKernel = ConvertersUtility.ii2DToFloatPointer(Views.zeroMin(kernel));
+
+			// get a FloatPointer for the output
+			fpOutput = ConvertersUtility.ii2DToFloatPointer(Views.zeroMin(input));
+		} else if (input.numDimensions() == 3) {
+
+			// convert image to FloatPointer
+			fpInput = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(input));
+
+			// convert PSF to FloatPointer
+			fpKernel = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(kernel));
+
+			// get a FloatPointer for the output
+			fpOutput = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(input));
+		} else {
+			return;
+		}
 
 		final long startTime = System.currentTimeMillis();
-		
+
 		runNativeFilter(input, fpInput, fpKernel, fpOutput);
-		
+
 		final long endTime = System.currentTimeMillis();
 		
+		int imageSize=1;
+		
+		for (int d=0;d<input.numDimensions();d++) {
+			imageSize*=input.dimension(d);
+		}
+
 		// copy output to array
-		final float[] arrayOutput = new float[(int) (input.dimension(0) * input.dimension(1) * input.dimension(2))];
+		final float[] arrayOutput = new float[imageSize];
 		fpOutput.get(arrayOutput);
 
 		Pointer.free(fpInput);
 		Pointer.free(fpKernel);
 		Pointer.free(fpOutput);
 
-		long[] imgSize = new long[] { input.dimension(0), input.dimension(1), input.dimension(2) };
-
+		long[] imgSize=null;
+		
+		if (input.numDimensions()==2) {
+			imgSize = new long[] { input.dimension(0), input.dimension(1)};
+		}
+		else {
+			imgSize = new long[] { input.dimension(0), input.dimension(1), input.dimension(2) };
+		}
 		Img<FloatType> outPadded = ArrayImgs.floats(arrayOutput, imgSize);
 
 		// compute unpad interval
@@ -105,9 +136,10 @@ public abstract class AbstractNativeFFTFilterF<I extends RealType<I>, O extends 
 				Views.zeroMin(Views.interval(outPadded, new FinalInterval(start, end))));
 
 	}
-	
+
 	protected abstract void loadNativeLibraries();
-	
-	protected abstract void runNativeFilter(Interval dimensions, FloatPointer input, FloatPointer kernel, FloatPointer output);
+
+	protected abstract void runNativeFilter(Interval dimensions, FloatPointer input, FloatPointer kernel,
+			FloatPointer output);
 
 }
