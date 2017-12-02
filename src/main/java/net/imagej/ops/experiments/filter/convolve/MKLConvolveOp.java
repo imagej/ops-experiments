@@ -2,7 +2,6 @@ package net.imagej.ops.experiments.filter.convolve;
 
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.filter.AbstractNativeFFTFilterF;
-import net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyWrapper;
 import net.imglib2.Interval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ComplexType;
@@ -44,8 +43,6 @@ public class MKLConvolveOp<I extends RealType<I>, O extends RealType<O> & Native
 			H_ = new FloatPointer(2 * (fftSize[0] * fftSize[1] * fftSize[2]));
 		}
 
-		final long startTime = System.currentTimeMillis();
-
 		// Call the MKL wrapper
 		MKLConvolveWrapper.mklConvolve(input, kernel, output, X_, H_, (int) dimensions.dimension(1),
 				(int) dimensions.dimension(0));
@@ -53,8 +50,6 @@ public class MKLConvolveOp<I extends RealType<I>, O extends RealType<O> & Native
 		// Pointer.free(fpInput);
 		// Pointer.free(fpKernel);
 		// Pointer.free(fpOutput);
-
-		final long endTime = System.currentTimeMillis();
 
 	}
 

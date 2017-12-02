@@ -59,7 +59,7 @@ public class MKLRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & 
 
 		final long endTime = System.currentTimeMillis();
 
-		log.info("Total execution time (MKL) is: " + (endTime - startTime));
+		//log.info("Total execution time (MKL) is: " + (endTime - startTime));
 	}
 
 }
