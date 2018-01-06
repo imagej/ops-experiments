@@ -29,14 +29,14 @@ public class JavaCPPConvolveOp<I extends RealType<I>, O extends RealType<O> & Na
 	}
 
 	@Override
-	protected void runNativeFilter(Interval dimensions, FloatPointer input, FloatPointer kernel, FloatPointer output) {
+	protected void runNativeFilter(Interval inputInterval, Interval outputInterval, FloatPointer input, FloatPointer kernel, FloatPointer output) {
 
 		FloatPointer X_ = null;
 		FloatPointer H_ = null;
 		long n = -1;
 
-		if (dimensions.numDimensions() == 2) {
-			final long[] fftSize = new long[] { dimensions.dimension(0) / 2 + 1, dimensions.dimension(1) };
+		if (inputInterval.numDimensions() == 2) {
+			final long[] fftSize = new long[] { inputInterval.dimension(0) / 2 + 1, inputInterval.dimension(1) };
 
 			n = fftSize[0] * fftSize[1];
 
@@ -45,8 +45,8 @@ public class JavaCPPConvolveOp<I extends RealType<I>, O extends RealType<O> & Na
 			H_ = new FloatPointer(2 * (fftSize[0] * fftSize[1]));
 
 		} else {
-			final long[] fftSize = new long[] { dimensions.dimension(0) / 2 + 1, dimensions.dimension(1),
-					dimensions.dimension(2) };
+			final long[] fftSize = new long[] { inputInterval.dimension(0) / 2 + 1, inputInterval.dimension(1),
+					inputInterval.dimension(2) };
 
 			n = fftSize[0] * fftSize[1] * fftSize[2];
 
@@ -55,18 +55,14 @@ public class JavaCPPConvolveOp<I extends RealType<I>, O extends RealType<O> & Na
 			H_ = new FloatPointer(2 * (fftSize[0] * fftSize[1] * fftSize[2]));
 		}
 
-		// Call the MKL wrapper
-		MKLConvolveWrapper.mklConvolve(input, kernel, output, X_, H_, (int) dimensions.dimension(1),
-				(int) dimensions.dimension(0));
-
 		// create FFT plan
-		final fftwf_plan forward1 = fftwf_plan_dft_r2c_2d((int) dimensions.dimension(0), (int) dimensions.dimension(1),
+		final fftwf_plan forward1 = fftwf_plan_dft_r2c_2d((int) inputInterval.dimension(0), (int) inputInterval.dimension(1),
 				input, X_, (int) FFTW_ESTIMATE);
 
-		final fftwf_plan forward2 = fftwf_plan_dft_r2c_2d((int) dimensions.dimension(0), (int) dimensions.dimension(1),
+		final fftwf_plan forward2 = fftwf_plan_dft_r2c_2d((int) inputInterval.dimension(0), (int) inputInterval.dimension(1),
 				kernel, H_, (int) FFTW_ESTIMATE);
 
-		final fftwf_plan inverse = fftwf_plan_dft_c2r_2d((int) dimensions.dimension(0), (int) dimensions.dimension(1),
+		final fftwf_plan inverse = fftwf_plan_dft_c2r_2d((int) inputInterval.dimension(0), (int) inputInterval.dimension(1),
 				X_, output, (int) FFTW_ESTIMATE);
 
 		fftwf_execute(forward1);

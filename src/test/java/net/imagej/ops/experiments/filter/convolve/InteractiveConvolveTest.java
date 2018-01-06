@@ -42,9 +42,15 @@ public class InteractiveConvolveTest {
 
 		// run MKL convolve op
 		RandomAccessibleInterval<FloatType> outputMKL = (RandomAccessibleInterval<FloatType>) ij.op()
-				.run(MKLConvolveOp.class, img, kernel, new long[] { 0, 0, 0 });
+				.run(MKLConvolveOp.class, img, kernel, new long[] { 0, 0, 0 }, false);
 
 		ij.ui().show("MKL convolved", outputMKL);
+
+		// run MKL convolve op
+		RandomAccessibleInterval<FloatType> correlatedMKL = (RandomAccessibleInterval<FloatType>) ij.op()
+				.run(MKLConvolveOp.class, img, kernel, new long[] { 0, 0, 0 }, true);
+
+		ij.ui().show("MKL correlated", correlatedMKL);
 
 		// run Java CPP convolve op
 		RandomAccessibleInterval<FloatType> outputJavaCPP = (RandomAccessibleInterval<FloatType>) ij.op()

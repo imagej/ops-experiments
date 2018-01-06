@@ -108,7 +108,12 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-ops</artifactId>
-			<version>0.39.0-SNAPSHOT</version>
+			<version>0.40.0-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-legacy</artifactId>
 		</dependency>
 		
 		<!-- Imglib2 dependencies -->
@@ -157,11 +162,6 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej-legacy</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -223,9 +223,9 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                                 <classOrPackageName>net.imagej.ops.experiments.javacpp.*</classOrPackageName>
                                 <classOrPackageName>net.imagej.ops.experiments.fft.MKLFFTWFloatRealForward2DWrapper</classOrPackageName>
                                 <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper</classOrPackageName>
+                                <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolve3DWrapper</classOrPackageName>
                             	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyWrapper</classOrPackageName>
-                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.CudaRichardsonLucyWrapper</classOrPackageName>
-                            
+                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.CudaRichardsonLucyWrapper</classOrPackageName>                    
                             </classOrPackageNames>
                         </configuration>
                     </execution>

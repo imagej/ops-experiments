@@ -19,9 +19,7 @@ __declspec(dllexport) void testMKLFFTW(float * x_, float * y_, int width, int he
 
 }
 
-__declspec(dllexport) void mklConvolve(float * x, float *h, float *y, float * X_, float * H_, const int width, const int height) {
-
-	printf("starting mkl fftwf");
+__declspec(dllexport) void mklConvolve(float * x, float *h, float *y, float * X_, float * H_, const int width, const int height, bool conj) {
 
 	fftwf_plan forward1 = fftwf_plan_dft_r2c_2d(width, height, x, (fftwf_complex*)X_,
 		(int)FFTW_ESTIMATE);
@@ -36,8 +34,14 @@ __declspec(dllexport) void mklConvolve(float * x, float *h, float *y, float * X_
 
 	const MKL_INT n = (width/2+1)*height;
 
-	// multiply X_, H_ for convolution
-	vcmul(&n, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+	if (conj) {
+		// multiply X_, H_ for convolution
+		vcmulbyconj(&n, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+	}
+	else {
+		// multiply X_, H_ for convolution
+		vcmul(&n, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+	}
 
 	fftwf_execute(inverse);
 
@@ -47,7 +51,49 @@ __declspec(dllexport) void mklConvolve(float * x, float *h, float *y, float * X_
 
 }
 
-__declspec(dllexport) void mklRichardsonLucy3D(int iterations, float * x, float *h, float*y, fftwf_complex* FFT_, fftwf_complex* H_,const int n0, const int n1, const int n2) {
+__declspec(dllexport) void mklConvolve3D(float * x, float *h, float *y, float * X_, float * H_, const int n0, const int n1, const int n2, bool conj) {
+
+	fftwf_plan forward1 = fftwf_plan_dft_r2c_3d(n0, n1, n2, x, (fftwf_complex*)X_,
+		(int)FFTW_ESTIMATE);
+
+	fftwf_plan forward2 = fftwf_plan_dft_r2c_3d(n0, n1, n2, h, (fftwf_complex*)H_,
+		(int)FFTW_ESTIMATE);
+
+	fftwf_plan inverse = fftwf_plan_dft_c2r_3d(n0, n1, n2, (fftwf_complex*)X_, y, (int)FFTW_ESTIMATE);
+
+	fftwf_execute(forward1);
+	fftwf_execute(forward2);
+
+	const MKL_INT imageSize = n0*n1*n2;
+	const MKL_INT fftSize = n0*n1*(n2/2+1);
+
+	if (conj) {
+		// conjugate multiply X_, H_ for correlation
+		vcmulbyconj(&fftSize, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+	}
+	else {
+		// multiply X_, H_ for convolution
+		vcmul(&fftSize, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+	}
+
+	fftwf_execute(inverse);
+
+	cblas_sscal(imageSize, 1. / (imageSize), y, 1);
+
+	fftwf_destroy_plan(forward1);
+	fftwf_destroy_plan(forward2);
+	fftwf_destroy_plan(inverse);
+
+}
+
+__declspec(dllexport) void mklRichardsonLucy3D(int iterations, float * x, float *h, float*y, fftwf_complex* FFT_, fftwf_complex* H_,const int n0, const int n1, const int n2, float * normal) {
+
+	if (normal == NULL) {
+		printf("The normal is NULL!\n");
+	}
+	else {
+		printf("We have recieved the normal!");
+	}
 
 	printf("starting mklrl 3D - ImageJ Version\n");
     
@@ -72,6 +118,8 @@ __declspec(dllexport) void mklRichardsonLucy3D(int iterations, float * x, float 
 	fftwf_plan inverse = fftwf_plan_dft_c2r_3d(n0,n1,n2, (fftwf_complex*)FFT_, temp, (int)FFTW_ESTIMATE);
 
     // iterations
+
+	float delta = 0.00001;
     
     for (int i=0;i<iterations;i++) {
         // create reblurred
@@ -87,9 +135,18 @@ __declspec(dllexport) void mklRichardsonLucy3D(int iterations, float * x, float 
         fftwf_execute(inverse);    
         cblas_sscal(imageSize, 1./(imageSize), temp, 1);
         
+        // divide original image by temp
+        //vsDiv(imageSize, x, temp, temp);
+		for (int j = 0; j < imageSize; j++) {
+			
+			if (temp[j] > 0) {
+				temp[j] = x[j] / temp[j];
+			}
+			else {
+				temp[j] = 0;
+			}
+		}
 
-        // divide by original image
-        vsDiv(imageSize, x, temp, temp);
       //  cblas_scopy(imageSize, temp, 1, y, 1);
 
         // correlate with PSF
@@ -103,6 +160,19 @@ __declspec(dllexport) void mklRichardsonLucy3D(int iterations, float * x, float 
 
         // multiply by y
         vsMul(imageSize, y, temp, y);
+
+		if (normal != NULL) {
+			//vsDiv(imageSize, y, normal, y);
+			for (int j = 0; j < imageSize; j++) {
+
+				if (normal[j] > 0) {
+					y[j] = y[j] / normal[j];
+				}
+				else {
+					y[j] = y[j]/1.;
+				}
+			}
+		}
  
     }
      

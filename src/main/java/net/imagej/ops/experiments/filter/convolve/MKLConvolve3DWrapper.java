@@ -13,13 +13,13 @@ import org.bytedeco.javacpp.annotation.Properties;
 	    includepath = "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/include"),
 	    
 		})
-public class MKLConvolveWrapper {
+public class MKLConvolve3DWrapper {
 	static {
 		Loader.load();
 	}
 	
-	public static native void mklConvolve
-	(FloatPointer x, FloatPointer h, FloatPointer y, FloatPointer X_, FloatPointer H_, int width, int height, boolean conj);
+	public static native void mklConvolve3D
+	(FloatPointer x, FloatPointer h, FloatPointer y, FloatPointer X_, FloatPointer H_, int n0, int n1, int n2, boolean conj);
 	
 	public static void load() {
 		Loader.load();

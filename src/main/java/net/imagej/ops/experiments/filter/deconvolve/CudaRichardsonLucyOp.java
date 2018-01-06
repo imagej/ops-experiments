@@ -40,17 +40,17 @@ public class CudaRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> &
 	}
 
 	@Override
-	protected void runNativeFilter(Interval dimensions, FloatPointer input, FloatPointer kernel, FloatPointer output) {
+	protected void runNativeFilter(Interval inputDimensions, Interval outputDimensions, FloatPointer input, FloatPointer kernel, FloatPointer output) {
 
 		final long startTime = System.currentTimeMillis();
 
 		// Call the Cuda wrapper
-		CudaRichardsonLucyWrapper.deconv_device(iterations, (int) dimensions.dimension(2),
-				(int) dimensions.dimension(1), (int) dimensions.dimension(0), input, kernel, output);
+		CudaRichardsonLucyWrapper.deconv_device(iterations, (int) inputDimensions.dimension(2),
+				(int) inputDimensions.dimension(1), (int) inputDimensions.dimension(0), input, kernel, output);
 
 		final long endTime = System.currentTimeMillis();
 
-		// log.info("Total execution time (Cuda) is: " + (endTime - startTime));
+		log.info("Total execution time (Cuda) is: " + (endTime - startTime));
 
 	}
 
