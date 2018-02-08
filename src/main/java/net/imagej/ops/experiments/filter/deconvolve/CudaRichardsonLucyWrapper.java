@@ -16,7 +16,7 @@ public class CudaRichardsonLucyWrapper {
 		Loader.load();
 	}
 
-	public static native void deconv_device(int iter, int n1, int n2, int n3, FloatPointer image, FloatPointer psf, FloatPointer object);
+	public static native void deconv_device(int iter, int n1, int n2, int n3, FloatPointer image, FloatPointer psf, FloatPointer object, FloatPointer normal);
 
 	public static void load() {
 		Loader.load();

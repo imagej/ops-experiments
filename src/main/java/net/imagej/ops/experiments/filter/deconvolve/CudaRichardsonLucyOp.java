@@ -46,7 +46,7 @@ public class CudaRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> &
 
 		// Call the Cuda wrapper
 		CudaRichardsonLucyWrapper.deconv_device(iterations, (int) inputDimensions.dimension(2),
-				(int) inputDimensions.dimension(1), (int) inputDimensions.dimension(0), input, kernel, output);
+				(int) inputDimensions.dimension(1), (int) inputDimensions.dimension(0), input, kernel, output, null);
 
 		final long endTime = System.currentTimeMillis();
 
