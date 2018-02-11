@@ -1,5 +1,11 @@
 package net.imagej.ops.experiments;
 
+import static org.bytedeco.javacpp.cuda.cudaDeviceSynchronize;
+import static org.bytedeco.javacpp.cuda.cudaMalloc;
+import static org.bytedeco.javacpp.cuda.cudaMemcpy;
+import static org.bytedeco.javacpp.cuda.cudaMemcpyDeviceToHost;
+import static org.bytedeco.javacpp.cuda.cudaMemcpyHostToDevice;
+
 import net.imagej.ops.slice.SlicesII;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
@@ -7,6 +13,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.view.Views;
 
+import org.bytedeco.javacpp.FloatPointer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -71,6 +78,47 @@ public class ConvertersUtilityTest {
 			ConvertersUtility.VecToIIRCFloat(in.getRow(r).data().asFloat(), Views.iterable(outCursor.get()));
 		}
 
+	}
+	
+	/**
+	 * Converts from FloatPointer to FloatPointer on Device
+	 * 
+	 * @param ii
+	 * @return FloatPointer containing the image data
+	 */
+	static public <T extends ComplexType<T>> FloatPointer floatPointerHostToDevice(final FloatPointer in, int size) {
+		FloatPointer out = new FloatPointer();
+
+		CudaUtility.checkCudaErrors(cudaMalloc(out, size * Float.BYTES));
+		CudaUtility.checkCudaErrors(cudaMemcpy(out, in, size * Float.BYTES, cudaMemcpyHostToDevice));
+
+		return out;
+
+	}
+
+	/**
+	 * Converts from FloatPointer Device to FloatPointer on Host
+	 * 
+	 * @param ii
+	 * @return FloatPointer containing the image data
+	 */
+	static public <T extends ComplexType<T>> FloatPointer floatPointerDeviceToHost(final FloatPointer device,
+			int size) {
+		FloatPointer host = new FloatPointer(size);
+		cudaDeviceSynchronize();
+		cudaMemcpy(host, device, size * Float.BYTES, cudaMemcpyDeviceToHost);
+
+		return host;
+
+	}
+	
+	static public <T extends ComplexType<T>> FloatPointer ii2DToDeviceFloatPointer(final IterableInterval<T> ii) {
+		FloatPointer hostfp = ConvertersUtility.ii2DToFloatPointer(ii);
+		FloatPointer devicefp = floatPointerHostToDevice(hostfp, (int) (ii.dimension(0) * ii.dimension(1)));
+
+		FloatPointer.free(hostfp);
+
+		return devicefp;
 	}
 
 }

@@ -8,16 +8,10 @@ import static org.bytedeco.javacpp.cufftw.fftwf_destroy_plan;
 import static org.bytedeco.javacpp.cufftw.fftwf_execute_dft_c2r;
 import static org.bytedeco.javacpp.cufftw.fftwf_plan_dft_c2r_2d;
 
-import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.cufftw;
-import org.bytedeco.javacpp.cufftw.fftwf_plan;
-import org.scijava.Priority;
-import org.scijava.plugin.Plugin;
-
 import net.imagej.ops.Contingent;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.ConvertersUtility;
+import net.imagej.ops.experiments.ConvertersUtilityTest;
 import net.imagej.ops.experiments.CudaUtility;
 import net.imagej.ops.special.function.AbstractUnaryFunctionOp;
 import net.imglib2.RandomAccessibleInterval;
@@ -27,9 +21,16 @@ import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
+import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.javacpp.cufftw;
+import org.bytedeco.javacpp.cufftw.fftwf_plan;
+import org.scijava.Priority;
+import org.scijava.plugin.Plugin;
+
 @Plugin(type = Ops.Filter.IFFT.class, priority = Priority.LOW_PRIORITY)
 public class CUFFTFloatRealInverse2D<C extends ComplexType<C>> extends
-		AbstractUnaryFunctionOp<RandomAccessibleInterval<C>, Img<FloatType>>implements Ops.Filter.FFT, Contingent {
+		AbstractUnaryFunctionOp<RandomAccessibleInterval<C>, Img<FloatType>> implements Ops.Filter.FFT, Contingent {
 
 	/**
 	 * Compute an 2D forward FFT using CUFFT (GPU)
@@ -38,13 +39,12 @@ public class CUFFTFloatRealInverse2D<C extends ComplexType<C>> extends
 	public Img<FloatType> calculate(final RandomAccessibleInterval<C> in) {
 
 		try {
-			
 
 			// get data as a float pointer
 			final FloatPointer data = ConvertersUtility.ii2DComplexToFloatPointer(Views.zeroMin(in));
 
 			// move to device
-			final FloatPointer p = ConvertersUtility.floatPointerHostToDevice(data,
+			final FloatPointer p = ConvertersUtilityTest.floatPointerHostToDevice(data,
 					(int) (in.dimension(0) * in.dimension(1) * 2));
 
 			// compute size of real signal
@@ -66,14 +66,14 @@ public class CUFFTFloatRealInverse2D<C extends ComplexType<C>> extends
 			final float[] out = new float[(int) (realSize[0] * realSize[1])];
 
 			// move memory back to host
-			final FloatPointer host = ConvertersUtility.floatPointerDeviceToHost(pout,
+			final FloatPointer host = ConvertersUtilityTest.floatPointerDeviceToHost(pout,
 					(int) ((realSize[0]) * realSize[1]));
 
 			host.get(out);
-			
-			checkCudaErrors( cudaFree(p));
-			checkCudaErrors( cudaFree(pout));
-			
+
+			checkCudaErrors(cudaFree(p));
+			checkCudaErrors(cudaFree(pout));
+
 			FloatPointer.free(host);
 
 			return ArrayImgs.floats(out, new long[] { realSize[0], realSize[1] });
@@ -87,11 +87,10 @@ public class CUFFTFloatRealInverse2D<C extends ComplexType<C>> extends
 
 	@Override
 	public boolean conforms() {
-		
+
 		try {
 			Loader.load(cufftw.class);
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return false;
 		}
 
