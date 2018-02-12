@@ -234,7 +234,7 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                                 <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper</classOrPackageName>
                                 <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolve3DWrapper</classOrPackageName>
                             	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyWrapper</classOrPackageName>
-                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.CudaRichardsonLucyWrapper</classOrPackageName>                    
+                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyWrapper</classOrPackageName>                    
                             </classOrPackageNames>
                         </configuration>
                     </execution>

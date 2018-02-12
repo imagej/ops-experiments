@@ -110,7 +110,7 @@ public class InteractiveDeconvolveTheoreticalTest<T extends RealType<T> & Native
 			startTime = System.currentTimeMillis();
 
 			RandomAccessibleInterval<FloatType> outputCuda = (RandomAccessibleInterval<FloatType>) ij.op()
-					.run(CudaRichardsonLucyOp.class, imgF, psf, new long[] { pad, pad, pad }, iterations);
+					.run(YacuDecuRichardsonLucyOp.class, imgF, psf, new long[] { pad, pad, pad }, iterations);
 
 			ij.ui().show("cuda op deconvolved", outputCuda);
 		}

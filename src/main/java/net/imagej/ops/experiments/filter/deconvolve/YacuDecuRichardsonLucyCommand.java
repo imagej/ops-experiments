@@ -10,8 +10,8 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>OpsExperiments>CudaDeconvolution")
-public class CudaRichardsonLucyCommand implements Command {
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>OpsExperiments>YacuDecu Deconvolution")
+public class YacuDecuRichardsonLucyCommand implements Command {
 	@Parameter
 	OpService ops;
 
@@ -69,7 +69,7 @@ public class CudaRichardsonLucyCommand implements Command {
 		val.set(sumPSF);
 		psf = (Img<FloatType>) ops.math().divide(psf, val);
 
-		deconvolved = (Img) ops.run(CudaRichardsonLucyOp.class, imgF, psf, new long[] { 0, 0, 0 }, iterations);
+		deconvolved = (Img) ops.run(YacuDecuRichardsonLucyOp.class, imgF, psf, new long[] { 0, 0, 0 }, iterations);
 
 	}
 

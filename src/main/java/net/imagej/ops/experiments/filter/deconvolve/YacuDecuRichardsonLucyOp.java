@@ -24,7 +24,7 @@ import org.scijava.plugin.Plugin;
  * @param <C>
  */
 @Plugin(type = Ops.Deconvolve.RichardsonLucy.class, priority = Priority.LOW_PRIORITY)
-public class CudaRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & NativeType<O>, K extends RealType<K>, C extends ComplexType<C> & NativeType<C>>
+public class YacuDecuRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & NativeType<O>, K extends RealType<K>, C extends ComplexType<C> & NativeType<C>>
 		extends AbstractNativeFFTFilterF<I, O, K, C> {
 
 	@Parameter
@@ -35,7 +35,7 @@ public class CudaRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> &
 
 	@Override
 	protected void loadNativeLibraries() {
-		CudaRichardsonLucyWrapper.load();
+		YacuDecuRichardsonLucyWrapper.load();
 
 	}
 
@@ -45,7 +45,7 @@ public class CudaRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> &
 		final long startTime = System.currentTimeMillis();
 
 		// Call the Cuda wrapper
-		CudaRichardsonLucyWrapper.deconv_device(iterations, (int) inputDimensions.dimension(2),
+		YacuDecuRichardsonLucyWrapper.deconv_device(iterations, (int) inputDimensions.dimension(2),
 				(int) inputDimensions.dimension(1), (int) inputDimensions.dimension(0), input, kernel, output, null);
 
 		final long endTime = System.currentTimeMillis();
