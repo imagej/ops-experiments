@@ -3,6 +3,7 @@ package net.imagej.ops.experiments.fft;
 import net.imagej.ops.Contingent;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.ConvertersUtility;
+import net.imagej.ops.experiments.ConvertersUtilityTest;
 import net.imagej.ops.special.function.AbstractUnaryFunctionOp;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
@@ -38,7 +39,7 @@ public class ND4JFloatRealForward2D<C extends ComplexType<C>>
 		DataTypeUtil.setDTypeForContext(DataBuffer.Type.FLOAT);
 		final INDArray innd = Nd4j.zeros((int) in.dimension(0), (int) in.dimension(1));
 
-		ConvertersUtility.IIToINDArrayFloat2D(Views.iterable(in), innd);
+		ConvertersUtilityTest.IIToINDArrayFloat2D(Views.iterable(in), innd);
 
 		// perform fft
 		final IComplexNDArray fftresult = FFT.fftn(innd);

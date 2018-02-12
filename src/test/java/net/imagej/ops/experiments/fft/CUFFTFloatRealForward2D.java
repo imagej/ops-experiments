@@ -1,25 +1,16 @@
 package net.imagej.ops.experiments.fft;
 
-import static org.bytedeco.javacpp.cuda.cudaMalloc;
+import static net.imagej.ops.experiments.CudaUtility.checkCudaErrors;
 import static org.bytedeco.javacpp.cuda.cudaFree;
+import static org.bytedeco.javacpp.cuda.cudaMalloc;
 import static org.bytedeco.javacpp.cufftw.FFTW_ESTIMATE;
 import static org.bytedeco.javacpp.cufftw.fftwf_destroy_plan;
 import static org.bytedeco.javacpp.cufftw.fftwf_execute_dft_r2c;
 import static org.bytedeco.javacpp.cufftw.fftwf_plan_dft_r2c_2d;
 
-import static net.imagej.ops.experiments.CudaUtility.checkCudaErrors;
-
-import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.cufftw;
-import org.bytedeco.javacpp.cufftw.fftwf_plan;
-import org.scijava.Priority;
-import org.scijava.plugin.Plugin;
-
 import net.imagej.ops.Contingent;
 import net.imagej.ops.Ops;
-import net.imagej.ops.experiments.ConvertersUtility;
-import net.imagej.ops.experiments.CudaUtility;
+import net.imagej.ops.experiments.ConvertersUtilityTest;
 import net.imagej.ops.special.function.AbstractUnaryFunctionOp;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
@@ -28,7 +19,12 @@ import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.complex.ComplexFloatType;
 import net.imglib2.view.Views;
 
-
+import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.javacpp.cufftw;
+import org.bytedeco.javacpp.cufftw.fftwf_plan;
+import org.scijava.Priority;
+import org.scijava.plugin.Plugin;
 
 @Plugin(type = Ops.Filter.IFFT.class, priority = Priority.LOW_PRIORITY)
 public class CUFFTFloatRealForward2D<C extends ComplexType<C>>
@@ -42,12 +38,12 @@ public class CUFFTFloatRealForward2D<C extends ComplexType<C>>
 	public Img<ComplexFloatType> calculate(final RandomAccessibleInterval<C> in) {
 
 		try {
-			
+
 			String libPathProperty = System.getProperty("java.library.path");
-	        System.out.println(libPathProperty);
+			System.out.println(libPathProperty);
 
 			// convert to device (cuda) FloatPointer
-			final FloatPointer p = ConvertersUtility.ii2DToDeviceFloatPointer(Views.zeroMin(in));
+			final FloatPointer p = ConvertersUtilityTest.ii2DToDeviceFloatPointer(Views.zeroMin(in));
 
 			// output size of FFT see
 			// http://www.fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html
@@ -68,13 +64,13 @@ public class CUFFTFloatRealForward2D<C extends ComplexType<C>>
 
 			final float[] out = new float[(int) (2 * (fftSize[0]) * fftSize[1])];
 
-			final FloatPointer host = ConvertersUtility.floatPointerDeviceToHost(pout,
+			final FloatPointer host = ConvertersUtilityTest.floatPointerDeviceToHost(pout,
 					(int) (2 * (fftSize[0]) * fftSize[1]));
 
 			host.get(out);
-			
-			checkCudaErrors( cudaFree(p));
-			checkCudaErrors( cudaFree(pout));
+
+			checkCudaErrors(cudaFree(p));
+			checkCudaErrors(cudaFree(pout));
 
 			FloatPointer.free(host);
 

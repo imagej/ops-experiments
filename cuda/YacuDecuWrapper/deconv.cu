@@ -27,7 +27,14 @@ __global__ void ComplexMul(cuComplex *A, cuComplex *B, cuComplex *C)
 __global__ void FloatDiv(float *A, float *B, float *C)
 {
     unsigned int i = blockIdx.x * gridDim.y * gridDim.z * blockDim.x + blockIdx.y * gridDim.z * blockDim.x + blockIdx.z * blockDim.x + threadIdx.x;
-    C[i] = A[i] / B[i];
+    
+	if (B[i] != 0) {
+		C[i] = A[i] / B[i];
+	}
+	else {
+		C[i] = 0;
+	}
+
 }
 
 __global__ void FloatMul(float *A, float *B, float *C)
@@ -62,7 +69,7 @@ static float devFloatMean(float *a_dev, int N) {
 }
 
 int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3, 
-                  float *h_image, float *h_psf, float *h_object) {
+                  float *h_image, float *h_psf, float *h_object, float *h_normal) {
     int retval = 0;
     cufftResult r;
     cudaError_t err;
@@ -205,7 +212,7 @@ cleanup:
 }
 
 extern "C" int deconv_host(unsigned int iter, size_t N1, size_t N2, size_t N3, 
-                float *h_image, float *h_psf, float *h_object) {
+                float *h_image, float *h_psf, float *h_object, float *h_normal) {
     int retval = 0;
     cufftResult r;
     cudaError_t err;
@@ -365,7 +372,7 @@ cleanup:
 }
 
 int deconv_stream(unsigned int iter, size_t N1, size_t N2, size_t N3, 
-                  float *h_image, float *h_psf, float *h_object) {
+                  float *h_image, float *h_psf, float *h_object, float *h_normal) {
     int retval = 0;
     cufftResult r;
     cudaError_t err;

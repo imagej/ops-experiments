@@ -1,17 +1,5 @@
 package net.imagej.ops.experiments.fft;
 
-import static org.bytedeco.javacpp.fftw3.FFTW_ESTIMATE;
-import static org.bytedeco.javacpp.fftw3.fftwf_destroy_plan;
-import static org.bytedeco.javacpp.fftw3.fftwf_execute;
-import static org.bytedeco.javacpp.fftw3.fftwf_plan_dft_r2c_2d;
-
-import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.fftw3;
-import org.bytedeco.javacpp.fftw3.fftwf_plan;
-import org.scijava.Priority;
-import org.scijava.plugin.Plugin;
-
 import net.imagej.ops.Contingent;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.ConvertersUtility;
@@ -22,6 +10,10 @@ import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.complex.ComplexFloatType;
 import net.imglib2.view.Views;
+
+import org.bytedeco.javacpp.FloatPointer;
+import org.scijava.Priority;
+import org.scijava.plugin.Plugin;
 
 @Plugin(type = Ops.Filter.IFFT.class, priority = Priority.LOW_PRIORITY)
 public class MKLFFTWFloatRealForward2D<C extends ComplexType<C>>

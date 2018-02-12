@@ -103,59 +103,42 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-ops</artifactId>
-			<version>0.40.0-SNAPSHOT</version>
+			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-legacy</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		
 		<!-- Imglib2 dependencies -->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-ij</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Third party dependencies -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-math3</artifactId>
-		</dependency>
-		
-		<dependency>
-        	<groupId>com.github.wendykierp</groupId>
-        	<artifactId>JTransforms</artifactId>
-        	<version>3.1</version>
-     	</dependency>
 		
 		<dependency>
             <groupId>org.bytedeco</groupId>
             <artifactId>javacpp</artifactId>
             <version>1.3.2</version>
         </dependency>
-		
-		<dependency>
-            <groupId>org.bytedeco.javacpp-presets</groupId>
-            <artifactId>fftw-platform</artifactId>
-            <version>3.3.5-1.3</version>
-        </dependency>
         
-        <dependency>
-            <groupId>org.bytedeco.javacpp-presets</groupId>
-            <artifactId>cuda-platform</artifactId>
-            <version>9.0-7.0-1.3</version>
-        </dependency>
 
 		<!-- Test scope dependencies -->
 		<dependency>
@@ -168,13 +151,39 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 			<groupId>org.nd4j</groupId>
 			<artifactId>nd4j-native</artifactId>
 			<version>${nd4j.version}</version>
+			<scope>test</scope>
 		</dependency>
 		
 		<dependency>
             <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>fftw-platform</artifactId>
+            <version>3.3.5-1.3</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>mkl-platform</artifactId>
             <version>2017.2-1.3.3-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
+        
+        <dependency>
+        	<groupId>com.github.wendykierp</groupId>
+        	<artifactId>JTransforms</artifactId>
+        	<version>3.1</version>
+        	<scope>test</scope>
+     	</dependency>
+     	
+     	 <dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>cuda-platform</artifactId>
+            <version>9.0-7.0-1.3</version>
+            <scope>test</scope>
+        </dependency>
+		
+		
+		
 		
 	</dependencies>
 	
@@ -225,7 +234,7 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                                 <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper</classOrPackageName>
                                 <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolve3DWrapper</classOrPackageName>
                             	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyWrapper</classOrPackageName>
-                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.CudaRichardsonLucyWrapper</classOrPackageName>                    
+                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyWrapper</classOrPackageName>                    
                             </classOrPackageNames>
                         </configuration>
                     </execution>

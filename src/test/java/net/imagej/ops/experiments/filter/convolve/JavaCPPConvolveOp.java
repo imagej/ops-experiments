@@ -29,7 +29,8 @@ public class JavaCPPConvolveOp<I extends RealType<I>, O extends RealType<O> & Na
 	}
 
 	@Override
-	protected void runNativeFilter(Interval inputInterval, Interval outputInterval, FloatPointer input, FloatPointer kernel, FloatPointer output) {
+	protected void runNativeFilter(Interval inputInterval, Interval outputInterval, FloatPointer input,
+			FloatPointer kernel, FloatPointer output) {
 
 		FloatPointer X_ = null;
 		FloatPointer H_ = null;
@@ -56,28 +57,28 @@ public class JavaCPPConvolveOp<I extends RealType<I>, O extends RealType<O> & Na
 		}
 
 		// create FFT plan
-		final fftwf_plan forward1 = fftwf_plan_dft_r2c_2d((int) inputInterval.dimension(0), (int) inputInterval.dimension(1),
-				input, X_, (int) FFTW_ESTIMATE);
+		final fftwf_plan forward1 = fftwf_plan_dft_r2c_2d((int) inputInterval.dimension(0),
+				(int) inputInterval.dimension(1), input, X_, (int) FFTW_ESTIMATE);
 
-		final fftwf_plan forward2 = fftwf_plan_dft_r2c_2d((int) inputInterval.dimension(0), (int) inputInterval.dimension(1),
-				kernel, H_, (int) FFTW_ESTIMATE);
+		final fftwf_plan forward2 = fftwf_plan_dft_r2c_2d((int) inputInterval.dimension(0),
+				(int) inputInterval.dimension(1), kernel, H_, (int) FFTW_ESTIMATE);
 
-		final fftwf_plan inverse = fftwf_plan_dft_c2r_2d((int) inputInterval.dimension(0), (int) inputInterval.dimension(1),
-				X_, output, (int) FFTW_ESTIMATE);
+		final fftwf_plan inverse = fftwf_plan_dft_c2r_2d((int) inputInterval.dimension(0),
+				(int) inputInterval.dimension(1), X_, output, (int) FFTW_ESTIMATE);
 
 		fftwf_execute(forward1);
 		fftwf_execute(forward2);
 
 		// use MKL to perform complex multiply
 		// vcMul((int)n, X_, H_, X_);
-		
+
 		// for some reason vcMul crashed... until we figure that out
 		// do a quick (to implement but slow to run) and dirty complex multiply
 		for (int i = 0; i < 2 * n; i += 2) {
-			Complex img = new Complex(X_.get(i), X_.get(i+1));
+			Complex img = new Complex(X_.get(i), X_.get(i + 1));
 			Complex h = new Complex(H_.get(i), H_.get(i + 1));
 
-			Complex y=img.multiply(h);
+			Complex y = img.multiply(h);
 
 			X_.put(i, (float) y.getReal());
 			X_.put(i + 1, (float) y.getImaginary());
