@@ -52,7 +52,7 @@ public class InteractiveDeconvolveTheoreticalTest<T extends RealType<T> & Native
 		Dimensions psfDimensions = new FinalDimensions(256, 256, 128);
 
 		double numericalAperture = 1.4;
-		double wavelength = 470E-09;
+		double wavelength = 550E-09;
 		double riImmersion = 1.5f;
 		double riSample = 1.4f;
 		double xySpacing = 62.9E-9;
@@ -78,16 +78,16 @@ public class InteractiveDeconvolveTheoreticalTest<T extends RealType<T> & Native
 		ij.ui().show("bars ", img);
 		ij.ui().show("psf", psf);
 
-		int iterations = 200;
+		int iterations = 100;
 		int pad = 0;
 
 		long startTime, endTime;
 
 		// run Ops Richardson Lucy
 
-		boolean opsRL = true;
+		boolean opsRL = false;
 		boolean mklRL = false;
-		boolean cudaRL = false;
+		boolean cudaRL = true;
 
 		if (opsRL) {
 

@@ -24,7 +24,7 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		ij.launch(args);
 		
-		String inputName = "../ops-images/deconvolution/CElegans-CY3-crop.tif";         
+		String inputName = "../ops-images/deconvolution/CElegans-CY3-crop_bs.tif";         
 		String psfName = "../ops-images/deconvolution/PSF-CElegans-CY3-cropped.tif";
 		
 		@SuppressWarnings("unchecked")
@@ -45,23 +45,23 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 		ij.ui().show("psf ", psf);
 
 		int iterations = 100;
-		int pad = 0;
+		int pad = 20;
 		
 		long startTime, endTime;
 		
 		// run Ops Richardson Lucy
 
-		startTime = System.currentTimeMillis();
+		/*startTime = System.currentTimeMillis();
 
 		Img<FloatType> deconvolved = (Img<FloatType>) ij.op().deconvolve().richardsonLucy(imgF, psfF,
-				new long[] { pad, pad, pad }, null, null, null, null ,10, true, true);
+				null, null, null, null, null ,30, true, true);
 		
 
 		endTime = System.currentTimeMillis();
 
 		ij.log().info("Total execution time (Ops) is: " + (endTime - startTime));
 
-		ij.ui().show("Richardson Lucy deconvolved", deconvolved);
+		ij.ui().show("Richardson Lucy deconvolved", deconvolved);*/
 
 		// run Cuda Richardson Lucy op
 
@@ -73,7 +73,8 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 		endTime = System.currentTimeMillis();
 
 		ij.log().info("Total execution time (Cuda) is: " + (endTime - startTime));
-
+		
+	
 		ij.ui().show("cuda op deconvolved", outputCuda);
 
 		// run MKL Richardson Lucy
