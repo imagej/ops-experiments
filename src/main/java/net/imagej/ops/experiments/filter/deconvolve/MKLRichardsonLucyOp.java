@@ -1,5 +1,6 @@
 package net.imagej.ops.experiments.filter.deconvolve;
 
+import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.experiments.filter.AbstractNativeFFTFilterF;
@@ -40,6 +41,9 @@ import org.scijava.ui.UIService;
 @Plugin(type = Ops.Deconvolve.RichardsonLucy.class, priority = Priority.LOW_PRIORITY)
 public class MKLRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & NativeType<O>, K extends RealType<K>, C extends ComplexType<C> & NativeType<C>>
 		extends AbstractNativeFFTFilterF<I, O, K, C> {
+
+	@Parameter
+	OpService ops;
 
 	@Parameter
 	UIService ui;
@@ -95,62 +99,9 @@ public class MKLRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & 
 		// create the normalization factor needed for non-circulant mode
 		if (nonCirculant == true) {
 
-			// compute convolution interval
-			final long[] start = new long[inputDimensions.numDimensions()];
-			final long[] end = new long[inputDimensions.numDimensions()];
+			mask_ = NativeDeconvolutionUtility.createNormalizationFactor(ops, inputDimensions, outputDimensions, kernel,
+					X_, H_);
 
-			for (int d = 0; d < outputDimensions.numDimensions(); d++) {
-				long offset = (inputDimensions.dimension(d) - outputDimensions.dimension(d)) / 2;
-				start[d] = offset;
-				end[d] = start[d] + outputDimensions.dimension(d) - 1;
-			}
-
-			Interval convolutionInterval = new FinalInterval(start, end);
-
-			Img<FloatType> mask = (Img<FloatType>) ops().create().img(inputDimensions, new FloatType());
-			RandomAccessibleInterval<FloatType> temp = Views.interval(Views.zeroMin(mask), convolutionInterval);
-
-			for (FloatType f : Views.iterable(temp)) {
-				f.setOne();
-			}
-
-			// ui.show(Views.zeroMin(mask));
-
-			mask_ = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(mask));
-
-			// Call the MKL wrapper to make normal
-			MKLConvolve3DWrapper.mklConvolve3D(mask_, kernel, mask_, X_, H_, (int) inputDimensions.dimension(2),
-					(int) inputDimensions.dimension(1), (int) inputDimensions.dimension(0), true);
-
-			/*
-			 * final float[] arrayInput = new float[arraySize]; final float[]
-			 * arrayPSF = new float[arraySize]; final float[] arrayOutput = new
-			 * float[arraySize]; final float[] arrayNormal = new
-			 * float[arraySize];
-			 * 
-			 * input.get(arrayInput); Img<FloatType> input_ =
-			 * ArrayImgs.floats(arrayInput, new long[] {
-			 * inputDimensions.dimension(0), inputDimensions.dimension(1),
-			 * inputDimensions.dimension(2) });
-			 * 
-			 * output.get(arrayOutput); Img<FloatType> output_ =
-			 * ArrayImgs.floats(arrayOutput, new long[] {
-			 * inputDimensions.dimension(0), inputDimensions.dimension(1),
-			 * inputDimensions.dimension(2) });
-			 * 
-			 * kernel.get(arrayPSF); Img<FloatType> psf =
-			 * ArrayImgs.floats(arrayPSF, new long[] {
-			 * inputDimensions.dimension(0), inputDimensions.dimension(1),
-			 * inputDimensions.dimension(2) });
-			 * 
-			 * mask_.get(arrayNormal); Img<FloatType> normal =
-			 * ArrayImgs.floats(arrayNormal, new long[] {
-			 * inputDimensions.dimension(0), inputDimensions.dimension(1),
-			 * inputDimensions.dimension(2) });
-			 * 
-			 * ui.show("input", input_); ui.show("output", output_);
-			 * ui.show("psf", psf); ui.show("normal", normal);
-			 */
 		} else {
 			mask_ = null;
 		}

@@ -1,5 +1,6 @@
 package net.imagej.ops.experiments.filter.deconvolve;
 
+import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.filter.AbstractNativeFFTFilterF;
 import net.imglib2.Interval;
@@ -28,10 +29,16 @@ public class YacuDecuRichardsonLucyOp<I extends RealType<I>, O extends RealType<
 		extends AbstractNativeFFTFilterF<I, O, K, C> {
 
 	@Parameter
+	OpService ops;
+	
+	@Parameter
 	LogService log;
 
 	@Parameter
 	int iterations;
+	
+	@Parameter(required = false)
+	boolean nonCirculant = false;
 
 	@Override
 	protected void loadNativeLibraries() {
@@ -41,7 +48,29 @@ public class YacuDecuRichardsonLucyOp<I extends RealType<I>, O extends RealType<
 
 	@Override
 	protected void runNativeFilter(Interval inputDimensions, Interval outputDimensions, FloatPointer input, FloatPointer kernel, FloatPointer output) {
+		
+		final long[] fftSize = new long[] { inputDimensions.dimension(0) / 2 + 1, inputDimensions.dimension(1),
+				inputDimensions.dimension(2) };
+		
+		final FloatPointer X_ = new FloatPointer(2 * (fftSize[0] * fftSize[1] * fftSize[2]));
 
+		final FloatPointer H_ = new FloatPointer(2 * (fftSize[0] * fftSize[1] * fftSize[2]));
+
+		final FloatPointer mask_;
+
+		int arraySize = (int) (inputDimensions.dimension(0) * inputDimensions.dimension(1)
+				* inputDimensions.dimension(2));
+
+		// create the normalization factor needed for non-circulant mode
+		if (nonCirculant == true) {
+
+			mask_=NativeDeconvolutionUtility.createNormalizationFactor(ops, inputDimensions, outputDimensions,
+						kernel,  X_,H_);
+		}
+		else {
+			mask_=null;
+		}
+		
 		final long startTime = System.currentTimeMillis();
 
 		// Call the Cuda wrapper
