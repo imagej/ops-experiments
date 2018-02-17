@@ -20,7 +20,6 @@ import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
 import org.bytedeco.javacpp.FloatPointer;
-import org.jfree.util.Log;
 
 /**
  * Abstract class for Native FFT filters based on the JavaCpp framework
