@@ -1,4 +1,8 @@
 #include<stdio.h>
+
+#include "MKLFFTW.h"
+#include "mkl.h"
+#include "mkl_vml_functions.h"
 #include "mkl_vml.h"
 #include "mkl_dfti.h"
 #include "mkl_cblas.h"
@@ -6,9 +10,26 @@
 #include "fftw/fftw3.h"
 #include "fftw/fftw3_mkl.h"
 
-__declspec(dllexport) void testMKLFFTW(float * x_, float * y_, int width, int height) {
+int main() {
+	int w=512;
+	int h=512;
+
+	printf("entering\n");
+
+	float * x=(float*)malloc(sizeof(float)*w*h);
+	float * y=(float*)malloc(sizeof(float)*2*(w/2+1)*h);
+
+	testMKLFFTW(x,y,w,h);
+
+	printf("success\n");
+	free(x);
+	free(y);
+		 
+}
+
+extern "C" EXPORT void testMKLFFTW(float * x_, float * y_, int width, int height) {
 	
-	printf("starting mkl fftwf");
+	printf("starting mkl fftwf\n");
 	
 	fftwf_plan plan = fftwf_plan_dft_r2c_2d(width, height, x_, (fftwf_complex*)y_,
 		(int)FFTW_ESTIMATE);
@@ -19,7 +40,7 @@ __declspec(dllexport) void testMKLFFTW(float * x_, float * y_, int width, int he
 
 }
 
-__declspec(dllexport) void mklConvolve(float * x, float *h, float *y, float * X_, float * H_, const int width, const int height, bool conj) {
+extern "C" EXPORT void mklConvolve(float * x, float *h, float *y, float * X_, float * H_, const int width, const int height, bool conj) {
 
 	fftwf_plan forward1 = fftwf_plan_dft_r2c_2d(width, height, x, (fftwf_complex*)X_,
 		(int)FFTW_ESTIMATE);
@@ -36,11 +57,11 @@ __declspec(dllexport) void mklConvolve(float * x, float *h, float *y, float * X_
 
 	if (conj) {
 		// multiply X_, H_ for convolution
-		vcmulbyconj(&n, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+		vcMulByConj(n, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
 	}
 	else {
 		// multiply X_, H_ for convolution
-		vcmul(&n, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+		vcMul(n, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
 	}
 
 	fftwf_execute(inverse);
@@ -51,7 +72,7 @@ __declspec(dllexport) void mklConvolve(float * x, float *h, float *y, float * X_
 
 }
 
-__declspec(dllexport) void mklConvolve3D(float * x, float *h, float *y, float * X_, float * H_, const int n0, const int n1, const int n2, bool conj) {
+extern "C" EXPORT void mklConvolve3D(float * x, float *h, float *y, float * X_, float * H_, const int n0, const int n1, const int n2, bool conj) {
 
 	fftwf_plan forward1 = fftwf_plan_dft_r2c_3d(n0, n1, n2, x, (fftwf_complex*)X_,
 		(int)FFTW_ESTIMATE);
@@ -69,11 +90,11 @@ __declspec(dllexport) void mklConvolve3D(float * x, float *h, float *y, float * 
 
 	if (conj) {
 		// conjugate multiply X_, H_ for correlation
-		vcmulbyconj(&fftSize, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+		vcMulByConj(fftSize, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
 	}
 	else {
 		// multiply X_, H_ for convolution
-		vcmul(&fftSize, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
+		vcMul(fftSize, (MKL_Complex8*)X_, (MKL_Complex8*)H_, (MKL_Complex8*)X_);
 	}
 
 	fftwf_execute(inverse);
@@ -86,7 +107,7 @@ __declspec(dllexport) void mklConvolve3D(float * x, float *h, float *y, float * 
 
 }
 
-__declspec(dllexport) void mklRichardsonLucy3D(int iterations, float * x, float *h, float*y, fftwf_complex* FFT_, fftwf_complex* H_,const int n0, const int n1, const int n2, float * normal) {
+extern "C" EXPORT void mklRichardsonLucy3D(int iterations, float * x, float *h, float*y, fftwf_complex* FFT_, fftwf_complex* H_,const int n0, const int n1, const int n2, float * normal) {
 
 	if (normal == NULL) {
 		printf("The normal is NULL!\n");
@@ -130,7 +151,7 @@ __declspec(dllexport) void mklRichardsonLucy3D(int iterations, float * x, float 
         fftwf_execute(forward1);
 
         // multiply X_, H_ for convolution
-        vcmul(&fftSize, (MKL_Complex8*)FFT_, (MKL_Complex8*)H_, (MKL_Complex8*)FFT_);
+        vcMul(fftSize, (MKL_Complex8*)FFT_, (MKL_Complex8*)H_, (MKL_Complex8*)FFT_);
 
         fftwf_execute(inverse);    
         cblas_sscal(imageSize, 1./(imageSize), temp, 1);

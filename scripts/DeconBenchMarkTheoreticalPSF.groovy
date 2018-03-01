@@ -17,7 +17,6 @@ import net.imglib2.type.numeric.real.FloatType;
 import net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyOp;
 import net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyOp;
 
-
 // convert to float (TODO: make sure deconvolution op works on other types)
 imgF=ops.convert().float32(img)
 
@@ -37,11 +36,11 @@ xySpacing = 62.9E-9;
 zSpacing = 160E-9;
 depth = 0;
 
-
 psf = ops.create().kernelDiffraction(psfSize, numericalAperture, wavelength,
 				riSample, riImmersion, xySpacing, zSpacing, depth, new FloatType());
 
 startTime = System.currentTimeMillis();
+
 deconvolved=ops.run(YacuDecuRichardsonLucyOp.class, imgF, psf, borderSize, numIterations);
 //deconvolved=ops.run(MKLRichardsonLucyOp.class, imgF, psf, borderSize, numIterations);
 

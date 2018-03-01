@@ -2,13 +2,8 @@ package net.imagej.ops.experiments.filter.deconvolve;
 
 import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
-import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.experiments.filter.AbstractNativeFFTFilterF;
-import net.imagej.ops.experiments.filter.convolve.MKLConvolve3DWrapper;
-import net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper;
-import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
@@ -19,7 +14,6 @@ import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
-import net.imglib2.view.Views;
 
 import org.bytedeco.javacpp.FloatPointer;
 import org.scijava.Priority;
@@ -81,8 +75,8 @@ public class MKLRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & 
 	}
 
 	@Override
-	protected void runNativeFilter(Interval inputDimensions, Interval outputDimensions, FloatPointer input,
-			FloatPointer kernel, FloatPointer output) {
+	protected void runNativeFilter(final Interval inputDimensions, final Interval outputDimensions, final FloatPointer input,
+			final FloatPointer kernel, final FloatPointer output) {
 
 		final long[] fftSize = new long[] { inputDimensions.dimension(0) / 2 + 1, inputDimensions.dimension(1),
 				inputDimensions.dimension(2) };
@@ -93,7 +87,7 @@ public class MKLRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & 
 
 		final FloatPointer mask_;
 
-		int arraySize = (int) (inputDimensions.dimension(0) * inputDimensions.dimension(1)
+		final int arraySize = (int) (inputDimensions.dimension(0) * inputDimensions.dimension(1)
 				* inputDimensions.dimension(2));
 
 		// create the normalization factor needed for non-circulant mode
@@ -119,7 +113,7 @@ public class MKLRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & 
 		final float[] arrayDecon = new float[arraySize];
 
 		output.get(arrayDecon);
-		Img<FloatType> decon = ArrayImgs.floats(arrayDecon, new long[] { inputDimensions.dimension(0),
+		final Img<FloatType> decon = ArrayImgs.floats(arrayDecon, new long[] { inputDimensions.dimension(0),
 				inputDimensions.dimension(1), inputDimensions.dimension(2) });
 		ui.show("unextended decon", decon);
 

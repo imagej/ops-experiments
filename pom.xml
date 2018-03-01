@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>17.1.1</version>
+		<version>18.1.0</version>
 		<relativePath />
 	</parent>
 
@@ -103,13 +103,13 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
-			<scope>provided</scope>
+			<!--  <scope>provided</scope> -->
 		</dependency>
 		
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-ops</artifactId>
-			<scope>provided</scope>
+			<!--  <scope>provided</scope>-->
 		</dependency>
 		
 		<dependency>
@@ -164,7 +164,7 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
         <dependency>
             <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>mkl-platform</artifactId>
-            <version>2017.2-1.3.3-SNAPSHOT</version>
+            <version>2018.1-1.4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         
@@ -182,26 +182,63 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
             <scope>test</scope>
         </dependency>
 		
-		
-		
-		
 	</dependencies>
 	
 	 <build>
+	 
+	    <!-- Detect platform: ${os.detected.classifier} -->
+		<extensions>
+			<extension>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.5.0.Final</version>
+			</extension>
+		</extensions>
+		
+	
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.3</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>properties</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             
+			<!-- Execute cppbuild.sh to build libraries -->
+			<plugin>
+				<artifactId>exec-maven-plugin</artifactId>
+				<groupId>org.codehaus.mojo</groupId>
+				<executions>
+					<execution>
+						<id>cppbuild</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>bash</executable>
+							<commandlineArgs>${project.basedir}/native/cppbuild.sh</commandlineArgs>
+							<workingDirectory>${project.basedir}/native</workingDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Copy native libraries to a platform-specific package (an JAR additional package) -->
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>${os.detected.classifier}</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>${os.detected.classifier}</classifier>
+							<includes>
+								<include>${project.basedir}/native/lib/</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+            
+            <!--  Use JavaCpp to create wrappers to native libraries -->
            <plugin>
                 <groupId>org.bytedeco</groupId>
                 <artifactId>javacpp</artifactId>
@@ -210,13 +247,12 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                     <classPath>${project.build.outputDirectory}</classPath>
                     <includePaths>
                         <includePath>${project.build.sourceDirectory}</includePath>
-                        <includePath>${basedir}/native/MKLFFTW/source/</includePath>
-                        <includePath>${basedir}/cuda/YacuDecuWrapper/</includePath>
+                        <includePath>${basedir}/native/MKLFFTW/src/</includePath>
+                        <includePath>${basedir}/native/YacuDecu/src/</includePath>
                         <includePath>${basedir}/JavaCppNative/</includePath>
                     </includePaths>
                     <linkPaths>
-                    	<linkPath>${basedir}/../ops-experiments-bin/MKLFFTW/Debug/</linkPath>
-                    	<linkPath>${basedir}/../ops-experiments-bin-cuda/YacuDecuWrapper/Release/</linkPath>
+                    	<linkPath>${basedir}/native/lib/</linkPath>
                     </linkPaths>
                     <copyLibs>true</copyLibs>
                 </configuration>
@@ -237,9 +273,7 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
                             	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyWrapper</classOrPackageName>                    
                             </classOrPackageNames>
                         </configuration>
-                    </execution>
-                    
-                                
+                    </execution>                       
                 </executions>
             </plugin>
         </plugins>
