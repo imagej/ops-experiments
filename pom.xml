@@ -47,6 +47,7 @@
 				<role>maintainer</role>
 			</roles>
 		</developer>
+		
 	</developers>
 	<contributors>
 		<contributor>
@@ -54,6 +55,14 @@
 			<url>http://imagej.net/User:Dietzc</url>
 			<properties><id>dietzc</id></properties>
 		</contributor>
+		<contributor>
+			<name>Hadrien Mary</name>
+			<url>http://imagej.net/User:Hadim</url>
+			<properties>
+				<id>hadim</id>
+			</properties>
+		</contributor>
+		
 	</contributors>
 
 	<mailingLists>
