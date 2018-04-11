@@ -49,7 +49,7 @@ public class InteractiveDeconvolveTheoreticalTest<T extends RealType<T> & Native
 		String inputName = "C:/Users/bnorthan/Dropbox/Deconvolution_Test_Set/McNamara/GM 20131101Fri_StellarisFISH_1_w61 = DAPI ROI.tif";
 
 		// Dimensions psfDimensions = new FinalDimensions(65, 65, 128);
-		Dimensions psfDimensions = new FinalDimensions(256, 256, 128);
+	/*	Dimensions psfDimensions = new FinalDimensions(64, 256, 128);
 
 		double numericalAperture = 1.4;
 		double wavelength = 550E-09;
@@ -58,7 +58,18 @@ public class InteractiveDeconvolveTheoreticalTest<T extends RealType<T> & Native
 		double xySpacing = 62.9E-9;
 		double zSpacing = 160E-9;
 		double depth = 0;
-		// double depth=6200
+		// double depth=6200*/
+		
+		Dimensions psfDimensions = new FinalDimensions(64, 64, 9);
+
+		double numericalAperture = .75;
+		double wavelength = 670E-09;
+		double riImmersion = 1.5f;
+		double riSample = 1.33f;
+		double xySpacing = 377E-9;
+		double zSpacing = 1500E-9;
+		double depth = 2000E-9;
+		
 
 		// open image and convert to 32 bit
 		@SuppressWarnings("unchecked")
@@ -68,7 +79,9 @@ public class InteractiveDeconvolveTheoreticalTest<T extends RealType<T> & Native
 		// create the diffraction based psf
 		Img<FloatType> psf = (Img) ij.op().create().kernelDiffraction(psfDimensions, numericalAperture, wavelength,
 				riSample, riImmersion, xySpacing, zSpacing, depth, new FloatType());
-
+		
+		ij.ui().show(psf);
+/*
 		// normalize PSF energy to 1
 		float sumPSF = ij.op().stats().sum(psf).getRealFloat();
 		FloatType val = new FloatType();
@@ -124,7 +137,7 @@ public class InteractiveDeconvolveTheoreticalTest<T extends RealType<T> & Native
 
 			ij.ui().show("mkl op deconvolved", deconvolvedMKL);
 		}
-
+*/
 	}
 
 }

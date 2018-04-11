@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -9,9 +10,15 @@
 		<relativePath />
 	</parent>
 
+	<modules>
+		<module>ops-experiments-main</module>
+		<module>ops-experiments-tensorflow</module>
+	</modules>
+
 	<groupId>net.imagej</groupId>
-	<artifactId>ops-experiments</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<artifactId>pom-ops-experiments</artifactId>
+	<version>0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
 	<name>Ops Experiments</name>
 	<description>Experimental code for SciJava and ImageJ Ops.</description>
@@ -90,8 +97,7 @@
 	<properties>
 		<package-name>net.imagej.ops.experiments</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
-		<license.copyrightOwners>Board of Regents of the University of
-Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightOwners>
+		<license.copyrightOwners>Board of Regents of the University of Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightOwners>
 		<license.projectName>ImageJ software for multidimensional image processing and analysis.</license.projectName>
 		<nd4j.backend>nd4j-native-platform</nd4j.backend>
 		<nd4j.version>0.8.0</nd4j.version>
@@ -107,184 +113,4 @@ Wisconsin-Madison, University of Konstanz and Brian Northan.</license.copyrightO
 		</repository>
 	</repositories>
 
-	<dependencies>
-		<!-- ImageJ dependencies -->
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej</artifactId>
-			<!--  <scope>provided</scope> -->
-		</dependency>
-		
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej-ops</artifactId>
-			<!--  <scope>provided</scope>-->
-		</dependency>
-		
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej-legacy</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		
-		<!-- Imglib2 dependencies -->
-		<dependency>
-			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2-ij</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- Third party dependencies -->
-		
-		<dependency>
-            <groupId>org.bytedeco</groupId>
-            <artifactId>javacpp</artifactId>
-            <version>1.3.2</version>
-        </dependency>
-        
-
-		<!-- Test scope dependencies -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.nd4j</groupId>
-			<artifactId>nd4j-native</artifactId>
-			<version>${nd4j.version}</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-            <groupId>org.bytedeco.javacpp-presets</groupId>
-            <artifactId>fftw-platform</artifactId>
-            <version>3.3.5-1.3</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.bytedeco.javacpp-presets</groupId>
-            <artifactId>mkl-platform</artifactId>
-            <version>2018.1-1.4.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-        	<groupId>com.github.wendykierp</groupId>
-        	<artifactId>JTransforms</artifactId>
-        	<version>3.1</version>
-        	<scope>test</scope>
-     	</dependency>
-     	
-     	 <dependency>
-            <groupId>org.bytedeco.javacpp-presets</groupId>
-            <artifactId>cuda-platform</artifactId>
-            <version>9.0-7.0-1.3</version>
-            <scope>test</scope>
-        </dependency>
-		
-	</dependencies>
-	
-	 <build>
-	 
-	    <!-- Detect platform: ${os.detected.classifier} -->
-		<extensions>
-			<extension>
-				<groupId>kr.motd.maven</groupId>
-				<artifactId>os-maven-plugin</artifactId>
-				<version>1.5.0.Final</version>
-			</extension>
-		</extensions>
-		
-	
-        <plugins>
-            
-			<!-- Execute cppbuild.sh to build libraries -->
-			<plugin>
-				<artifactId>exec-maven-plugin</artifactId>
-				<groupId>org.codehaus.mojo</groupId>
-				<executions>
-					<execution>
-						<id>cppbuild</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>bash</executable>
-							<commandlineArgs>${project.basedir}/native/cppbuild.sh</commandlineArgs>
-							<workingDirectory>${project.basedir}/native</workingDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<!-- Copy native libraries to a platform-specific package (an JAR additional package) -->
-			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>${os.detected.classifier}</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<classifier>${os.detected.classifier}</classifier>
-							<includes>
-								<include>${project.basedir}/native/lib/</include>
-							</includes>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-            
-            <!--  Use JavaCpp to create wrappers to native libraries -->
-           <plugin>
-                <groupId>org.bytedeco</groupId>
-                <artifactId>javacpp</artifactId>
-                <version>1.3</version>
-                <configuration>
-                    <classPath>${project.build.outputDirectory}</classPath>
-                    <includePaths>
-                        <includePath>${project.build.sourceDirectory}</includePath>
-                        <includePath>${basedir}/native/MKLFFTW/src/</includePath>
-                        <includePath>${basedir}/native/YacuDecu/src/</includePath>
-                        <includePath>${basedir}/JavaCppNative/</includePath>
-                    </includePaths>
-                    <linkPaths>
-                    	<linkPath>${basedir}/native/lib/</linkPath>
-                    </linkPaths>
-                    <copyLibs>true</copyLibs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>process-classes</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                        <configuration>
-                            <classOrPackageNames>
-                                <classOrPackageName>net.imagej.ops.experiments.javacpp.*</classOrPackageName>
-                                <classOrPackageName>net.imagej.ops.experiments.fft.MKLFFTWFloatRealForward2DWrapper</classOrPackageName>
-                                <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper</classOrPackageName>
-                                <classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolve3DWrapper</classOrPackageName>
-                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyWrapper</classOrPackageName>
-                            	<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyWrapper</classOrPackageName>                    
-                            </classOrPackageNames>
-                        </configuration>
-                    </execution>                       
-                </executions>
-            </plugin>
-        </plugins>
-     </build>
 </project>
