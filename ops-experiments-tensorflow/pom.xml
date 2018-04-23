@@ -10,7 +10,6 @@
 		<version>0.1-SNAPSHOT</version>
 	</parent>
 
-	<groupId>net.imagej</groupId>
 	<artifactId>ops-experiments-tensorflow</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 
@@ -38,7 +37,8 @@
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-tensorflow</artifactId>
-			<!-- Use newer version of TensorFlow than current in imagej-tensorflow -->
+			<version>1.0.0</version>
+			<!-- Use slightly newer version of TensorFlow than current in imagej-tensorflow -->
 			<exclusions>
 				<exclusion>
 					<groupId>org.tensorflow</groupId>

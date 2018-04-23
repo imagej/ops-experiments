@@ -64,7 +64,7 @@ public class FlowdecOp<I extends RealType<I>, O extends RealType<O>, K extends R
 
 		// Do nothing about setting devices for execution and let TensorFlow decide
 		// the best execution plan
-		Tensor<?> result = task.build().call().getTensor();
+		Tensor<Float> result = (Tensor<Float>)task.build().call().getTensor();
 
 		return (RandomAccessibleInterval<O>) Tensors.imgFloat(result);
 
