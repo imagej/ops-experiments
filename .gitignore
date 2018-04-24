@@ -9,6 +9,8 @@ target/
 .classpath
 .project
 .settings/
+/.metadata
+/.recommenders
 
 # binaries #
 *.class
