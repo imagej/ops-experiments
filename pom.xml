@@ -11,6 +11,8 @@
 	</parent>
 
 	<modules>
+		<module>ops-experiments-common</module>
+		<module>ops-experiments-cuda</module>
 		<module>ops-experiments-main</module>
 		<module>ops-experiments-tensorflow</module>
 	</modules>
