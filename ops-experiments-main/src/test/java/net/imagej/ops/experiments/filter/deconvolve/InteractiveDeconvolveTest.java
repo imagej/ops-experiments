@@ -3,12 +3,8 @@ package net.imagej.ops.experiments.filter.deconvolve;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
-import net.imagej.ops.filter.pad.DefaultPadInputFFT;
-import net.imglib2.FinalDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
-import net.imglib2.outofbounds.OutOfBoundsMirrorFactory;
-import net.imglib2.outofbounds.OutOfBoundsMirrorFactory.Boundary;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -19,17 +15,18 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 	public static <T extends RealType<T> & NativeType<T>> void main(final String[] args) throws IOException {
 	
-		String libPathProperty = System.getProperty("java.library.path");
+		final String libPathProperty = System.getProperty("java.library.path");
 		System.out.println("Lib path:" + libPathProperty);
 
 		ij.launch(args);
 		
-		String inputName = "../ops-images/deconvolution/CElegans-CY3-crop_bs.tif";         
-		String psfName = "../ops-images/deconvolution/PSF-CElegans-CY3-cropped.tif";
-		
+		final String inputName = "../images/Bars-G10-P15-stack-cropped.tif";
+		final String psfName = "../images/PSF-Bars-stack-cropped.tif";
+
 		@SuppressWarnings("unchecked")
+		final
 		Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus().getImg();
-		Img<FloatType> imgF = ij.op().convert().float32(img);
+		final Img<FloatType> imgF = ij.op().convert().float32(img);
 
 		@SuppressWarnings("unchecked")
 		final Img<T> psf = (Img<T>) ij.dataset().open(psfName).getImgPlus().getImg();
@@ -38,14 +35,14 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 		Img<FloatType> psfF = ij.op().convert().float32(psf);
 
 		// normalize PSF
-		FloatType sum = new FloatType(ij.op().stats().sum(psfF).getRealFloat());
+		final FloatType sum = new FloatType(ij.op().stats().sum(psfF).getRealFloat());
 		psfF = (Img<FloatType>) ij.op().math().divide(psfF, sum);
 
 		ij.ui().show("bars ", img);
 		ij.ui().show("psf ", psf);
 
-		int iterations = 100;
-		int pad = 20;
+		final int iterations = 100;
+		final int pad = 20;
 		
 		long startTime, endTime;
 		
@@ -67,7 +64,7 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		startTime = System.currentTimeMillis();
 
-		RandomAccessibleInterval<FloatType> outputCuda = (RandomAccessibleInterval<FloatType>) ij.op()
+		final RandomAccessibleInterval<FloatType> outputCuda = (RandomAccessibleInterval<FloatType>) ij.op()
 				.run(YacuDecuRichardsonLucyOp.class, imgF, psfF, new long[] { pad, pad, pad }, iterations);
 
 		endTime = System.currentTimeMillis();
@@ -82,7 +79,7 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 		startTime = System.currentTimeMillis();
 		
 		// run MKL Richardson Lucy op
-		RandomAccessibleInterval<FloatType> outputMKL = (RandomAccessibleInterval<FloatType>) ij.op()
+		final RandomAccessibleInterval<FloatType> outputMKL = (RandomAccessibleInterval<FloatType>) ij.op()
 				.run(MKLRichardsonLucyOp.class, imgF, psfF, new long[]{pad,pad,pad}, null, null, null, iterations, true);
 
 		endTime = System.currentTimeMillis();

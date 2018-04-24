@@ -61,15 +61,15 @@ public abstract class AbstractNativeFFTFilterF<I extends RealType<I>, O extends 
 	 * input and the kernel will have already been padded
 	 * 
 	 * @param input:
-	 *            padded input
+	 *            padded input 
 	 * @param kernel:
 	 *            padded kernel
 	 * @param output:
-	 *            padded output
+	 *            output (original size)
 	 */
 	@Override
 	public void computeFilter(final RandomAccessibleInterval<I> input, final RandomAccessibleInterval<K> kernel,
-			RandomAccessibleInterval<O> output, long[] paddedSize) {
+			RandomAccessibleInterval<O> output, final long[] paddedSize) {
 
 		// load native libraries, this is required before using FloatPointers
 		loadNativeLibraries();
@@ -100,9 +100,9 @@ public abstract class AbstractNativeFFTFilterF<I extends RealType<I>, O extends 
 			// fpOutput =
 			// ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(input));
 
-			float mean = ops().stats().mean(Views.iterable(input)).getRealFloat();
+			final float mean = ops().stats().mean(Views.iterable(input)).getRealFloat();
 
-			long bufferSize = input.dimension(0) * input.dimension(1) * input.dimension(2);
+			final long bufferSize = input.dimension(0) * input.dimension(1) * input.dimension(2);
 			fpOutput = new FloatPointer(bufferSize);
 
 			for (int i = 0; i < bufferSize; i++) {
@@ -136,14 +136,14 @@ public abstract class AbstractNativeFFTFilterF<I extends RealType<I>, O extends 
 		} else {
 			imgSize = new long[] { input.dimension(0), input.dimension(1), input.dimension(2) };
 		}
-		Img<FloatType> outPadded = ArrayImgs.floats(arrayOutput, imgSize);
+		final Img<FloatType> outPadded = ArrayImgs.floats(arrayOutput, imgSize);
 
 		// compute output interval within the padded input
 		final long[] start = new long[input.numDimensions()];
 		final long[] end = new long[input.numDimensions()];
 
 		for (int d = 0; d < output.numDimensions(); d++) {
-			long offset = (input.dimension(d) - output.dimension(d)) / 2;
+			final long offset = (input.dimension(d) - output.dimension(d)) / 2;
 			start[d] = offset;
 			end[d] = start[d] + output.dimension(d) - 1;
 		}

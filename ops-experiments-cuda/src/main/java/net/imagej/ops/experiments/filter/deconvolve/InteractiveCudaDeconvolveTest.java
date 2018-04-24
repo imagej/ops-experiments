@@ -10,7 +10,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 
-public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
+public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 	final static ImageJ ij = new ImageJ();
 
@@ -63,7 +63,8 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		endTime = System.currentTimeMillis();
 
-		ij.log().info("Total execution time (decon+overhead) is: " + (endTime - startTime));
+		ij.log().info("Total execution time cuda (decon+overhead) is: " + (endTime -
+			startTime));
 
 		ij.ui().show("cuda op deconvolved", outputCuda);
 	}
