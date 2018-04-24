@@ -31,6 +31,7 @@
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-ops</artifactId>
+			<!--  <version>0.40.1-SNAPSHOT</version>-->
 		</dependency>
 
 		<dependency>
