@@ -59,7 +59,8 @@ public class InteractiveMKLDeconvolveTest<T extends RealType<T> & NativeType<T>>
 		final RandomAccessibleInterval<FloatType> outputMKL =
 			(RandomAccessibleInterval<FloatType>) ij.op().run(
 				MKLRichardsonLucyOp.class, imgF, psfF, new long[] { pad, pad, pad },
-				iterations);
+				false, iterations);
+		
 
 		endTime = System.currentTimeMillis();
 

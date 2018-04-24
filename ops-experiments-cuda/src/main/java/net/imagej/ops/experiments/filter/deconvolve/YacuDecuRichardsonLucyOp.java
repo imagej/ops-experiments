@@ -10,7 +10,6 @@ import net.imglib2.type.numeric.RealType;
 
 import org.bytedeco.javacpp.FloatPointer;
 import org.scijava.Priority;
-import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -31,9 +30,6 @@ public class YacuDecuRichardsonLucyOp<I extends RealType<I>, O extends RealType<
 	@Parameter
 	OpService ops;
 	
-	@Parameter
-	LogService log;
-
 	@Parameter
 	int iterations;
 	

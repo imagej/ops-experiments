@@ -20,6 +20,8 @@ import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
 import org.bytedeco.javacpp.FloatPointer;
+import org.scijava.log.LogService;
+import org.scijava.plugin.Parameter;
 
 /**
  * Abstract class for Native FFT filters based on the JavaCpp framework
@@ -33,6 +35,12 @@ import org.bytedeco.javacpp.FloatPointer;
  */
 public abstract class AbstractNativeFFTFilterF<I extends RealType<I>, O extends RealType<O> & NativeType<O>, K extends RealType<K>, C extends ComplexType<C> & NativeType<C>>
 		extends AbstractFilterF<I, O, K, C> {
+	
+	@Parameter 
+	protected LogService log;
+	
+	@Parameter
+	boolean powerOfTwo;
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -45,14 +53,14 @@ public abstract class AbstractNativeFFTFilterF<I extends RealType<I>, O extends 
 		if (getPadOp() == null) {
 			setPadOp(
 					(BinaryFunctionOp) Functions.binary(ops(), DefaultPadInputFFT.class, RandomAccessibleInterval.class,
-							RandomAccessibleInterval.class, Dimensions.class, true, getOBFInput()));
+							RandomAccessibleInterval.class, Dimensions.class, powerOfTwo, getOBFInput()));
 		}
 		/**
 		 * Op used to pad the kernel
 		 */
 		if (getPadKernelOp() == null) {
 			setPadKernelOp((BinaryFunctionOp) Functions.binary(ops(), DefaultPadShiftKernelFFT.class,
-					RandomAccessibleInterval.class, RandomAccessibleInterval.class, Dimensions.class, true));
+					RandomAccessibleInterval.class, RandomAccessibleInterval.class, Dimensions.class, powerOfTwo));
 		}
 	}
 
@@ -70,7 +78,11 @@ public abstract class AbstractNativeFFTFilterF<I extends RealType<I>, O extends 
 	@Override
 	public void computeFilter(final RandomAccessibleInterval<I> input, final RandomAccessibleInterval<K> kernel,
 			RandomAccessibleInterval<O> output, final long[] paddedSize) {
-
+		
+		log.info("original size "+output.dimension(0)+" "+output.dimension(1)+" "+output.dimension(2));
+		log.info("padded to border size "+paddedSize[0]+" "+paddedSize[1]+" "+paddedSize[2]);
+		log.info("padded to fft size "+input.dimension(0)+" "+input.dimension(1)+" "+input.dimension(2));
+		
 		// load native libraries, this is required before using FloatPointers
 		loadNativeLibraries();
 
