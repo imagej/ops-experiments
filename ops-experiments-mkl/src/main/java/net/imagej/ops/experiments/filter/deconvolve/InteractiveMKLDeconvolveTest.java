@@ -26,7 +26,10 @@ public class InteractiveMKLDeconvolveTest<T extends RealType<T> & NativeType<T>>
 
 		final String inputName = "../images/Bars-G10-P15-stack-cropped.tif";
 		final String psfName = "../images/PSF-Bars-stack-cropped.tif";
-
+		//final String inputName = "/home/bnorthan/images/m2lasers/Spheroid/GFP RAW Stack-192.tif";
+		//final String psfName = "/home/bnorthan/images/m2lasers/Spheroid/psfnorm-64-100.tif";
+		
+		final int iterations = 50;
 		@SuppressWarnings("unchecked")
 		final Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus()
 			.getImg();
@@ -44,11 +47,8 @@ public class InteractiveMKLDeconvolveTest<T extends RealType<T> & NativeType<T>>
 			.getRealFloat());
 		psfF = (Img<FloatType>) ij.op().math().divide(psfF, sum);
 
-		ij.ui().show("bars ", img);
+		ij.ui().show("img ", img);
 		ij.ui().show("psf ", psf);
-
-		final int iterations = 100;
-		final int pad = 20;
 
 		long startTime, endTime;
 
@@ -58,8 +58,8 @@ public class InteractiveMKLDeconvolveTest<T extends RealType<T> & NativeType<T>>
 
 		final RandomAccessibleInterval<FloatType> outputMKL =
 			(RandomAccessibleInterval<FloatType>) ij.op().run(
-				MKLRichardsonLucyOp.class, imgF, psfF, new long[] { pad, pad, pad },
-				false, iterations);
+				MKLRichardsonLucyOp.class, imgF, psfF, new long[] { 32, 32, 50 },null,null,null,
+				false, iterations,true);
 		
 
 		endTime = System.currentTimeMillis();

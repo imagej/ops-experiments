@@ -137,8 +137,8 @@
 						</goals>
 						<configuration>
 							<classOrPackageNames>
-								<classOrPackageName>net.imagej.ops.experiments.fft.MKLFFTWFloatRealForward2DWrapper</classOrPackageName>
-								<classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper</classOrPackageName>
+								<!-- <classOrPackageName>net.imagej.ops.experiments.fft.MKLFFTWFloatRealForward2DWrapper</classOrPackageName> 
+									<classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolveWrapper</classOrPackageName> -->
 								<classOrPackageName>net.imagej.ops.experiments.filter.convolve.MKLConvolve3DWrapper</classOrPackageName>
 								<classOrPackageName>net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyWrapper</classOrPackageName>
 							</classOrPackageNames>

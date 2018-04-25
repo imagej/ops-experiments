@@ -16,16 +16,16 @@ import org.bytedeco.javacpp.FloatPointer;
 public class NativeDeconvolutionUtility {
 
 	static FloatPointer createNormalizationFactor(final OpService ops,
-		final Interval inputDimensions, final Interval outputDimensions, final FloatPointer kernel,
-		final FloatPointer X_, final FloatPointer H_)
+		final Interval inputDimensions, final Interval outputDimensions,
+		final FloatPointer kernel, final FloatPointer X_, final FloatPointer H_)
 	{
 		// compute convolution interval
 		final long[] start = new long[inputDimensions.numDimensions()];
 		final long[] end = new long[inputDimensions.numDimensions()];
 
 		for (int d = 0; d < outputDimensions.numDimensions(); d++) {
-			final long offset = (inputDimensions.dimension(d) - outputDimensions.dimension(
-				d)) / 2;
+			final long offset = (inputDimensions.dimension(d) - outputDimensions
+				.dimension(d)) / 2;
 			start[d] = offset;
 			end[d] = start[d] + outputDimensions.dimension(d) - 1;
 		}
@@ -34,8 +34,8 @@ public class NativeDeconvolutionUtility {
 
 		final Img<FloatType> mask = ops.create().img(inputDimensions,
 			new FloatType());
-		final RandomAccessibleInterval<FloatType> temp = Views.interval(Views.zeroMin(
-			mask), convolutionInterval);
+		final RandomAccessibleInterval<FloatType> temp = Views.interval(Views
+			.zeroMin(mask), convolutionInterval);
 
 		for (final FloatType f : Views.iterable(temp)) {
 			f.setOne();
@@ -50,6 +50,12 @@ public class NativeDeconvolutionUtility {
 		MKLConvolve3DWrapper.mklConvolve3D(mask_, kernel, mask_, X_, H_,
 			(int) inputDimensions.dimension(2), (int) inputDimensions.dimension(1),
 			(int) inputDimensions.dimension(0), true);
+
+		for (int i = 0; i < mask.size(); i++) {
+			if (mask_.get(i) < 0.00001) {
+				mask_.put(i, 1.f);
+			}
+		}
 
 		return mask_;
 	}
