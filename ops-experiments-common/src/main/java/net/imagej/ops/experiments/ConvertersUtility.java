@@ -1,8 +1,13 @@
+
 package net.imagej.ops.experiments;
 
 import net.imglib2.Cursor;
+import net.imglib2.Dimensions;
 import net.imglib2.IterableInterval;
+import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.ComplexType;
+import net.imglib2.type.numeric.real.FloatType;;
 
 import org.bytedeco.javacpp.FloatPointer;
 
@@ -14,7 +19,9 @@ public class ConvertersUtility {
 	 * @param ii
 	 * @return contiguous float[] array containing the image data
 	 */
-	static public <T extends ComplexType<T>> float[] ii2DComplexToFloatArray(final IterableInterval<T> ii) {
+	static public <T extends ComplexType<T>> float[] ii2DComplexToFloatArray(
+		final IterableInterval<T> ii)
+	{
 		final Cursor<T> c = ii.cursor();
 
 		final int xd = (int) ii.dimension(0);
@@ -44,7 +51,9 @@ public class ConvertersUtility {
 	 * @param ii
 	 * @return contiguous float[] array containing the image data
 	 */
-	static public <T extends ComplexType<T>> float[] ii2DToFloatArray(final IterableInterval<T> ii) {
+	static public <T extends ComplexType<T>> float[] ii2DToFloatArray(
+		final IterableInterval<T> ii)
+	{
 		final Cursor<T> c = ii.cursor();
 
 		final int xd = (int) ii.dimension(0);
@@ -73,7 +82,9 @@ public class ConvertersUtility {
 	 * @param in
 	 * @param out
 	 */
-	static public <T extends ComplexType<T>> void VecToIIRCFloat(final float[] in, final IterableInterval<T> out) {
+	static public <T extends ComplexType<T>> void VecToIIRCFloat(final float[] in,
+		final IterableInterval<T> out)
+	{
 
 		final Cursor<T> c = out.cursor();
 
@@ -96,7 +107,9 @@ public class ConvertersUtility {
 	 * @param ii
 	 * @return FloatPointer containing the image data
 	 */
-	static public <T extends ComplexType<T>> FloatPointer ii2DToFloatPointer(final IterableInterval<T> ii) {
+	static public <T extends ComplexType<T>> FloatPointer ii2DToFloatPointer(
+		final IterableInterval<T> ii)
+	{
 		final Cursor<T> c = ii.cursor();
 
 		final int xd = (int) ii.dimension(0);
@@ -104,7 +117,8 @@ public class ConvertersUtility {
 
 		final long[] pos = new long[2];
 
-		FloatPointer imgfp = new FloatPointer(ii.dimension(0) * ii.dimension(1));
+		final FloatPointer imgfp = new FloatPointer(ii.dimension(0) * ii.dimension(
+			1));
 
 		while (c.hasNext()) {
 			c.fwd();
@@ -126,7 +140,9 @@ public class ConvertersUtility {
 	 * @param ii
 	 * @return FloatPointer containing the image data
 	 */
-	static public <T extends ComplexType<T>> FloatPointer ii3DToFloatPointer(final IterableInterval<T> ii) {
+	static public <T extends ComplexType<T>> FloatPointer ii3DToFloatPointer(
+		final IterableInterval<T> ii)
+	{
 		final Cursor<T> c = ii.cursor();
 
 		final int xd = (int) ii.dimension(0);
@@ -135,7 +151,8 @@ public class ConvertersUtility {
 
 		final long[] pos = new long[3];
 
-		FloatPointer imgfp = new FloatPointer(ii.dimension(0) * ii.dimension(1) * ii.dimension(2));
+		final FloatPointer imgfp = new FloatPointer(ii.dimension(0) * ii.dimension(
+			1) * ii.dimension(2));
 
 		while (c.hasNext()) {
 			c.fwd();
@@ -157,7 +174,9 @@ public class ConvertersUtility {
 	 * @param ii
 	 * @return FloatPointer containing the image data
 	 */
-	static public <T extends ComplexType<T>> FloatPointer ii2DComplexToFloatPointer(final IterableInterval<T> ii) {
+	static public <T extends ComplexType<T>> FloatPointer
+		ii2DComplexToFloatPointer(final IterableInterval<T> ii)
+	{
 		final Cursor<T> c = ii.cursor();
 
 		final int xd = (int) ii.dimension(0);
@@ -178,6 +197,22 @@ public class ConvertersUtility {
 		}
 
 		return imgfp;
+
+	}
+
+	/**
+	 * Converts from a FloatPointer to an Img
+	 */
+	static public Img<FloatType> floatPointerToImg3D(final FloatPointer fp,
+		final Dimensions d)
+	{
+
+		final float[] temp = new float[(int) (d.dimension(0) * d.dimension(1) * d
+			.dimension(2))];
+		fp.get(temp);
+
+		return ArrayImgs.floats(temp, new long[] { d.dimension(0), d.dimension(1), d
+			.dimension(2) });
 
 	}
 

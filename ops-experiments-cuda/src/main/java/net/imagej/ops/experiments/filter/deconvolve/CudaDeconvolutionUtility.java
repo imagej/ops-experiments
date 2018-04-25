@@ -31,26 +31,32 @@ public class CudaDeconvolutionUtility {
 
 		final Interval convolutionInterval = new FinalInterval(start, end);
 
-		final Img<FloatType> mask = ops.create().img(inputDimensions,
+		final Img<FloatType> normal = ops.create().img(inputDimensions,
 			new FloatType());
 		final RandomAccessibleInterval<FloatType> temp = Views.interval(Views
-			.zeroMin(mask), convolutionInterval);
+			.zeroMin(normal), convolutionInterval);
 
 		for (final FloatType f : Views.iterable(temp)) {
 			f.setOne();
 		}
 
-		// ui.show(Views.zeroMin(mask));
+		// ui.show(Views.zeroMin(normal));
 
-		final FloatPointer mask_ = ConvertersUtility.ii3DToFloatPointer(Views
-			.zeroMin(mask));
+		final FloatPointer normalFP = ConvertersUtility.ii3DToFloatPointer(Views
+			.zeroMin(normal));
 
-		// Call the MKL wrapper to make normal
-		// MKLConvolve3DWrapper.mklConvolve3D(mask_, kernel, mask_, X_, H_, (int)
-		// inputDimensions.dimension(2),
-		// (int) inputDimensions.dimension(1), (int) inputDimensions.dimension(0),
-		// true);
+		// Call the cuda wrapper to make normal
+		YacuDecuRichardsonLucyWrapper.conv_device((int) inputDimensions.dimension(
+			2), (int) inputDimensions.dimension(1), (int) inputDimensions.dimension(
+				0), normalFP, kernel, normalFP, 1);
 
-		return mask_;
+		// remove small values from the mask
+		for (int i = 0; i < normal.size(); i++) {
+			if (normalFP.get(i) < 0.00001) {
+				normalFP.put(i, 1.f);
+			}
+		}
+
+		return normalFP;
 	}
 }

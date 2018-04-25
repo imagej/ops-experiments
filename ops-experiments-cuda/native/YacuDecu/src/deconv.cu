@@ -22,7 +22,25 @@ __global__ void ComplexMul(cuComplex *A, cuComplex *B, cuComplex *C)
 {
     unsigned int i = blockIdx.x * gridDim.y * gridDim.z * blockDim.x + blockIdx.y * gridDim.z * blockDim.x + blockIdx.z * blockDim.x + threadIdx.x;
     C[i] = cuCmulf(A[i], B[i]);
-sdfsfdsf
+}
+
+// BN 2018 add complex conjugate multiply
+__host__ __device__ static __inline__ cuFloatComplex cuCconjmulf(cuFloatComplex x,
+	cuFloatComplex y)
+{
+	cuFloatComplex prod;
+	prod = make_cuFloatComplex((cuCrealf(x) * cuCrealf(y)) +
+		(cuCimagf(x) * cuCimagf(y)),
+		-(cuCrealf(x) * cuCimagf(y)) +
+		(cuCimagf(x) * cuCrealf(y)));
+	return prod;
+}
+
+// BN 2018 add complex conjugate multiply kernel
+__global__ void ComplexConjugateMul(cuComplex *A, cuComplex *B, cuComplex *C)
+{
+	unsigned int i = blockIdx.x * gridDim.y * gridDim.z * blockDim.x + blockIdx.y * gridDim.z * blockDim.x + blockIdx.z * blockDim.x + threadIdx.x;
+	C[i] = cuCconjmulf(A[i], B[i]);
 }
 
 __global__ void FloatDiv(float *A, float *B, float *C)
@@ -41,6 +59,7 @@ __global__ void FloatDiv(float *A, float *B, float *C)
 __global__ void FloatMul(float *A, float *B, float *C)
 {
     unsigned int i = blockIdx.x * gridDim.y * gridDim.z * blockDim.x + blockIdx.y * gridDim.z * blockDim.x + blockIdx.z * blockDim.x + threadIdx.x;
+	
     C[i] = A[i] * B[i];
 }
 
@@ -83,6 +102,7 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
     float *object = 0; // estimated object
 	float *psf=0;
 	float*temp=0;
+	float*normal = 0;
 
     cuComplex *otf = 0; // Fourier transform of PSF (constant)
     void *buf = 0; // intermediate results
@@ -121,18 +141,32 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
     if(err) goto cudaErr;
 	err = cudaMalloc(&psf, mSpatial);
     if(err) goto cudaErr;
-	err = cudaMalloc(&temp, mSpatial);
-    if(err) goto cudaErr;
+	//err = cudaMalloc(&temp, mSpatial);
+    //if(err) goto cudaErr;
+
+	if (h_normal!=NULL) {
+		err = cudaMalloc(&normal, mSpatial);
+		if (err) goto cudaErr;
+	}
+	else {
+		normal = NULL;
+	}
 
     err = cudaMalloc(&otf, mFreq);
     if(err) goto cudaErr;
     err = cudaMalloc(&buf, mFreq); // mFreq > mSpatial
     if(err) goto cudaErr;
+	
 
     err = cudaMemset(image, 0, mSpatial);
     if(err) goto cudaErr;
     err = cudaMemset(object, 0, mSpatial);
     if(err) goto cudaErr;
+
+	if (h_normal != NULL) {
+		err = cudaMemset(normal, 0, mSpatial);
+		if (err) goto cudaErr;
+	}
 
     printf("Memory allocated.\n");
 
@@ -147,6 +181,13 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
     if(err) goto cudaErr;
     printf("PSF transferred.\n");
 
+	if (h_normal != NULL) {
+		err = cudaMemcpy(normal, h_normal, nSpatial * sizeof(float), cudaMemcpyHostToDevice);
+		if (err) goto cudaErr;
+		printf("Normal transferred.\n");
+	}
+
+
     // BN it looks like this function was originall written for the array organization used in matlab.  I Changed the order of the dimensions
     // to be compatible with imglib2 (java). TODO - add param for array organization 
     r = createPlans(N1, N2, N3, &planR2C, &planC2R, &workArea, &workSize);
@@ -156,6 +197,10 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 
     r = cufftExecR2C(planR2C, psf, otf);
     if(r) goto cufftError;
+
+	// since we don't the psf anymore (we just used it to get the OTF) use the psf buffer
+	// as the temp buffer
+	temp = psf;
 
     for(unsigned int i=0; i < iter; i++) {
         printf("Iteration %d!!!\n", i);
@@ -173,9 +218,12 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 		FloatDivByConstant<<<spatialBlocks, spatialThreadsPerBlock>>>((float*)temp,(float)nSpatial);
 		
         FloatDiv<<<spatialBlocks, spatialThreadsPerBlock>>>(image, (float*)temp, (float*)temp);
-        r = cufftExecR2C(planR2C, (float*)temp, (cufftComplex*)buf);
+        
+		r = cufftExecR2C(planR2C, (float*)temp, (cufftComplex*)buf);
         if(r) goto cufftError;
-        ComplexMul<<<freqBlocks, freqThreadsPerBlock>>>((cuComplex*)buf, otf, (cuComplex*)buf);
+
+		// BN 2018 Changed to complex conjugate multiply
+        ComplexConjugateMul<<<freqBlocks, freqThreadsPerBlock>>>((cuComplex*)buf, otf, (cuComplex*)buf);
 		r = cufftExecC2R(planC2R, (cufftComplex*)buf, (float*)temp);
 		if(r) goto cufftError;
 
@@ -183,9 +231,14 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 		
         FloatMul<<<spatialBlocks, spatialThreadsPerBlock>>>((float*)temp, object, object);
 		
+		if (normal != NULL) {
+			std::cout << "Divide by normal " << i << "\n" << std::flush;
+			FloatDiv<<<spatialBlocks, spatialThreadsPerBlock >>>((float*)object, normal, object);
+		}
+		
     }
 
-    err = cudaMemcpy(h_object, object, nSpatial*sizeof(float), cudaMemcpyDeviceToHost);
+	err = cudaMemcpy(h_object, object, nSpatial*sizeof(float), cudaMemcpyDeviceToHost);
     if(err) goto cudaErr;
 
     retval = 0;
@@ -193,11 +246,15 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 
 cudaErr:
     fprintf(stderr, "CUDA error: %d\n", err);
+	std::cout << "CUDA error: " << err << std::endl;
+	
     retval = err;
     goto cleanup;
 
 cufftError:
-    fprintf(stderr, "CuFFT error: %d\n", r);
+    fprintf(stderr, "CuFFT error IS: %d\n", r);
+	std::cout << "CuFFT error is: " << r << std::endl;
+
     retval = r;
     goto cleanup;
 
@@ -546,15 +603,17 @@ cufftResult createPlans(size_t N1, size_t N2, size_t N3, cufftHandle *planR2C, c
 
     r = cufftCreate(planR2C);
     if(r) return r;
-  //  r = cufftSetCompatibilityMode(*planR2C, CUFFT_COMPATIBILITY_FFT_PADDING);
-  //  if(r) return r;
+  	//  r = cufftSetCompatibilityMode(*planR2C, CUFFT_COMPATIBILITY_FFT_PADDING);
+  	//  if(r) return r;
+
     r = cufftSetAutoAllocation(*planR2C, 0);
     if(r) return r;
 
     r = cufftCreate(planC2R);
     if(r) return r;
-   // r = cufftSetCompatibilityMode(*planC2R, CUFFT_COMPATIBILITY_FFT_PADDING);
-  //  if(r) return r;
+   	// r = cufftSetCompatibilityMode(*planC2R, CUFFT_COMPATIBILITY_FFT_PADDING);
+  	//  if(r) return r;
+
     r = cufftSetAutoAllocation(*planC2R, 0);
     if(r) return r;
 
@@ -628,3 +687,138 @@ static cudaError_t numBlocksThreads(unsigned int N, dim3 *numBlocks, dim3 *threa
 
     return cudaSuccess;
 }
+
+
+int conv_device(size_t N1, size_t N2, size_t N3, 
+                  float *h_image, float *h_psf, float *h_out, unsigned int correlate) {
+
+    int retval = 0;
+    cufftResult r;
+    cudaError_t err;
+    cufftHandle planR2C, planC2R;
+
+	std::cout<<"Arrived in Cuda convolution\n";
+	printf("input size: %d %d %d, N1, N2, N3");
+
+    float *image = 0; // convolved image (constant)
+    float *psf=0;
+	float *out = 0; // estimated object
+	
+    cuComplex *otf = 0; // Fourier transform of PSF (constant)
+    void *buf = 0; // intermediate results
+    void *workArea = 0; // cuFFT work area
+
+    size_t nSpatial = N1*N2*N3; // number of values in spatial domain
+    size_t nFreq = N1*N2*(N3/2+1); // number of values in frequency domain
+    //size_t nFreq = N1*(N2/2+1); // number of values in frequency domain
+    size_t mSpatial, mFreq;
+
+    dim3 freqThreadsPerBlock, spatialThreadsPerBlock, freqBlocks, spatialBlocks;
+    size_t workSize; // size of cuFFT work area in bytes
+
+    err = numBlocksThreads(nSpatial, &spatialBlocks, &spatialThreadsPerBlock);
+    if(err) goto cudaErr;
+    err = numBlocksThreads(nFreq, &freqBlocks, &freqThreadsPerBlock);
+    if(err) goto cudaErr;
+
+    mSpatial = spatialBlocks.x * spatialBlocks.y * spatialBlocks.z * spatialThreadsPerBlock.x * sizeof(float);
+    mFreq = freqBlocks.x * freqBlocks.y * freqBlocks.z * freqThreadsPerBlock.x * sizeof(cuComplex);
+
+    printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
+    printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
+	fflush(stdin);
+
+	std::cout<<"N: "<<nSpatial<<" M: "<<mSpatial<<"\n"<<std::flush;
+	std::cout<<"Blocks: "<<spatialBlocks.x<<" x "<<spatialBlocks.y<<" x "<<spatialBlocks.z<<", Threads: "<<spatialThreadsPerBlock.x<<" x "<<spatialThreadsPerBlock.y<<" x "<<spatialThreadsPerBlock.z<<"\n";
+    
+	cudaDeviceReset();
+
+    cudaProfilerStart();
+
+    err = cudaMalloc(&image, mSpatial);
+    if(err) goto cudaErr;
+    err = cudaMalloc(&out, mSpatial);
+    if(err) goto cudaErr;
+	err = cudaMalloc(&psf, mSpatial);
+    if(err) goto cudaErr;
+	
+    err = cudaMalloc(&buf, mFreq); // mFreq > mSpatial
+    if(err) goto cudaErr;
+
+	err = cudaMalloc(&otf, mFreq); // mFreq > mSpatial
+    if(err) goto cudaErr;
+
+    err = cudaMemset(image, 0, mSpatial);
+    if(err) goto cudaErr;
+    err = cudaMemset(out, 0, mSpatial);
+    if(err) goto cudaErr;
+
+    printf("Memory allocated.\n");
+
+    err = cudaMemcpy(image, h_image, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
+    if(err) goto cudaErr;
+    printf("Image transferred.\n");
+    err = cudaMemcpy(out, h_out, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
+    if(err) goto cudaErr;
+    printf("Object transferred.\n");
+
+    err = cudaMemcpy(psf, h_psf, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
+    if(err) goto cudaErr;
+    printf("PSF transferred.\n");
+
+    // BN it looks like this function was originall written for the array organization used in matlab.  I Changed the order of the dimensions
+    // to be compatible with imglib2 (java). TODO - add param for array organization 
+    r = createPlans(N1, N2, N3, &planR2C, &planC2R, &workArea, &workSize);
+    if(r) goto cufftError;
+
+    printf("Plans created.\n");
+
+    r = cufftExecR2C(planR2C, psf, otf);
+    if(r) goto cufftError;
+
+    printf("Convolving!!\n");
+    // BN flush the buffer for debugging in Java.
+    fflush(stdout);
+    
+	r = cufftExecR2C(planR2C, image, (cufftComplex*)buf);
+    if(r) goto cufftError;
+    
+	if (correlate==1) {
+		ComplexConjugateMul<<<freqBlocks, freqThreadsPerBlock>>>((cuComplex*)buf, otf, (cuComplex*)buf);
+	}
+	else {
+		ComplexMul<<<freqBlocks, freqThreadsPerBlock>>>((cuComplex*)buf, otf, (cuComplex*)buf);
+	}        
+
+	r = cufftExecC2R(planC2R, (cufftComplex*)buf, (float*)out);
+    if(r) goto cufftError;
+	
+
+		FloatDivByConstant<<<spatialBlocks, spatialThreadsPerBlock>>>((float*)out,(float)nSpatial);
+    
+		err = cudaMemcpy(h_out, out, nSpatial*sizeof(float), cudaMemcpyDeviceToHost);
+    
+		retval = 0;
+    goto cleanup;
+
+cudaErr:
+    fprintf(stderr, "CUDA error: %d\n", err);
+    retval = err;
+    goto cleanup;
+
+cufftError:
+    fprintf(stderr, "CuFFT error: %d\n", r);
+    retval = r;
+    goto cleanup;
+
+cleanup:
+    if(image) cudaFree(image);
+    if(out) cudaFree(out);
+    if(otf) cudaFree(otf);
+    if(buf) cudaFree(buf);
+    if(workArea) cudaFree(workArea);
+    cudaProfilerStop();
+    cudaDeviceReset();
+    return retval;
+}
+
