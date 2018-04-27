@@ -16,8 +16,9 @@ case $PLATFORM in
         #       -DCMAKE_INSTALL_PREFIX="../.." \
         #       -DCMAKE_CXX_COMPILER="/usr/bin/g++" \
         #       -DCMAKE_CUDA_HOST_COMPILER="/usr/bin/g++" ..
-	cp ../Makefile Makefile
-	mkdir -p ../../lib
+		cp ../Makefile Makefile
+		mkdir -p ../../lib
+		make clean
         make
         make install
         ;;
