@@ -95,8 +95,7 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
     cudaError_t err;
     cufftHandle planR2C, planC2R;
 
-	std::cout<<"Arrived in Cuda deconvolution\n";
-	printf("input size: %d %d %d, N1, N2, N3");
+	std::cout<<"Starting Cuda deconvolution\n";
 
     float *image = 0; // convolved image (constant)
     float *object = 0; // estimated object
@@ -132,7 +131,6 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 	std::cout<<"Blocks: "<<spatialBlocks.x<<" x "<<spatialBlocks.y<<" x "<<spatialBlocks.z<<", Threads: "<<spatialThreadsPerBlock.x<<" x "<<spatialThreadsPerBlock.y<<" x "<<spatialThreadsPerBlock.z<<"\n";
     
 	cudaDeviceReset();
-
     cudaProfilerStart();
 
     err = cudaMalloc(&image, mSpatial);
@@ -168,23 +166,18 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 		if (err) goto cudaErr;
 	}
 
-    printf("Memory allocated.\n");
-
     err = cudaMemcpy(image, h_image, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
     if(err) goto cudaErr;
-    printf("Image transferred.\n");
+
     err = cudaMemcpy(object, h_object, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
     if(err) goto cudaErr;
-    printf("Object transferred.\n");
 
     err = cudaMemcpy(psf, h_psf, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
     if(err) goto cudaErr;
-    printf("PSF transferred.\n");
 
 	if (h_normal != NULL) {
 		err = cudaMemcpy(normal, h_normal, nSpatial * sizeof(float), cudaMemcpyHostToDevice);
 		if (err) goto cudaErr;
-		printf("Normal transferred.\n");
 	}
 
 
@@ -203,7 +196,6 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 	temp = psf;
 
     for(unsigned int i=0; i < iter; i++) {
-        printf("Iteration %d!!!\n", i);
         // BN flush the buffer for debugging in Java.
         fflush(stdout);
         
@@ -232,7 +224,6 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
         FloatMul<<<spatialBlocks, spatialThreadsPerBlock>>>((float*)temp, object, object);
 		
 		if (normal != NULL) {
-			std::cout << "Divide by normal " << i << "\n" << std::flush;
 			FloatDiv<<<spatialBlocks, spatialThreadsPerBlock >>>((float*)object, normal, object);
 		}
 		
@@ -697,8 +688,8 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     cudaError_t err;
     cufftHandle planR2C, planC2R;
 
-	std::cout<<"Arrived in Cuda convolution\n";
-	printf("input size: %d %d %d, N1, N2, N3");
+	std::cout<<"Starting Cuda convolution\n";
+	printf("input size: %d %d %d", N1, N2, N3");
 
     float *image = 0; // convolved image (constant)
     float *psf=0;
@@ -753,30 +744,22 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     err = cudaMemset(out, 0, mSpatial);
     if(err) goto cudaErr;
 
-    printf("Memory allocated.\n");
-
     err = cudaMemcpy(image, h_image, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
     if(err) goto cudaErr;
-    printf("Image transferred.\n");
     err = cudaMemcpy(out, h_out, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
     if(err) goto cudaErr;
-    printf("Object transferred.\n");
 
     err = cudaMemcpy(psf, h_psf, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
     if(err) goto cudaErr;
-    printf("PSF transferred.\n");
 
     // BN it looks like this function was originall written for the array organization used in matlab.  I Changed the order of the dimensions
     // to be compatible with imglib2 (java). TODO - add param for array organization 
     r = createPlans(N1, N2, N3, &planR2C, &planC2R, &workArea, &workSize);
     if(r) goto cufftError;
 
-    printf("Plans created.\n");
-
     r = cufftExecR2C(planR2C, psf, otf);
     if(r) goto cufftError;
 
-    printf("Convolving!!\n");
     // BN flush the buffer for debugging in Java.
     fflush(stdout);
     
