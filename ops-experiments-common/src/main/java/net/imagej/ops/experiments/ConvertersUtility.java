@@ -7,7 +7,7 @@ import net.imglib2.IterableInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.ComplexType;
-import net.imglib2.type.numeric.real.FloatType;;
+import net.imglib2.type.numeric.real.FloatType;
 
 import org.bytedeco.javacpp.FloatPointer;
 
