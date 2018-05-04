@@ -6,11 +6,14 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>18.1.0</version>
+		<version>20.0.0</version>
 		<relativePath />
 	</parent>
 
 	<modules>
+		<module>ops-experiments-common</module>
+		<module>ops-experiments-cuda</module>
+		<module>ops-experiments-mkl</module>
 		<module>ops-experiments-main</module>
 		<module>ops-experiments-tensorflow</module>
 	</modules>

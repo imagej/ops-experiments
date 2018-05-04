@@ -3,12 +3,14 @@
 *.swp
 
 # Maven #
-/target/
+target/
 
 # Eclipse #
-/.classpath
-/.project
-/.settings/
+.classpath
+.project
+.settings/
+/.metadata
+/.recommenders
 
 # binaries #
 *.class
