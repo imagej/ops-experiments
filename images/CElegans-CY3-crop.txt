@@ -1,0 +1,8 @@
+CElegans-CY3-crop.tif
+numericalAperture = 1.4;
+wavelength = 654E-09;
+riImmersion = 1.5f;
+riSample = 1.4f;
+xySpacing = 64.5E-9;
+zSpacing = 160E-9;
+depth = 0;
