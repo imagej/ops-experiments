@@ -689,7 +689,7 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     cufftHandle planR2C, planC2R;
 
 	std::cout<<"Starting Cuda convolution\n";
-	printf("input size: %d %d %d", N1, N2, N3");
+	printf("input size: %d %d %d", N1, N2, N3);
 
     float *image = 0; // convolved image (constant)
     float *psf=0;
