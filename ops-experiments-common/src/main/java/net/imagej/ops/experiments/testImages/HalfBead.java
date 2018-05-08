@@ -32,7 +32,7 @@ public class HalfBead<T extends RealType<T> & NativeType<T>> extends
 	@Override
 	public void LoadImages(ImageJ ij) throws IOException {
 		final String inputName = "../images/BeadStack-crop.tif";
-		final String psfName = "../images/PSF-BeadStack-crop.tif";
+		final String psfName = "../images/PSF-BeadStack-crop-64.tif";
 
 		imgF = loadAndConvertToFloat(inputName, ij);
 		psfF = loadPSFAndNormalize(psfName, ij);

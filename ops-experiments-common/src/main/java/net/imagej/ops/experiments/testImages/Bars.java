@@ -30,7 +30,7 @@ public class Bars<T extends RealType<T> & NativeType<T>> extends
 	@Override
 	public void LoadImages(ImageJ ij) throws IOException {
 		final String inputName = "../images/Bars-G10-P15-stack-cropped.tif";
-		final String psfName = "../images/PSF-Bars-stack-cropped.tif";
+		final String psfName = "../images/PSF-Bars-stack-cropped-64.tif";
 
 		imgF = loadAndConvertToFloat(inputName, ij);
 		psfF = loadPSFAndNormalize(psfName, ij);
