@@ -4,8 +4,11 @@ package net.imagej.ops.experiments.filter.deconvolve;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
+import net.imagej.ops.experiments.VisualizationUtility;
 import net.imagej.ops.experiments.testImages.Bars;
+import net.imagej.ops.experiments.testImages.CElegans;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
+import net.imagej.ops.experiments.testImages.HalfBead;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -29,9 +32,9 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 		final int borderXY = 32;
 		final int borderZ = 50;
 
-		DeconvolutionTestData testData = new Bars();
-		// DeconvolutionTestData testData = new CElegans();
-		// DeconvolutionTestData testData = new HalfBead();
+		//DeconvolutionTestData testData = new Bars();
+		DeconvolutionTestData testData = new CElegans();
+		//DeconvolutionTestData testData = new HalfBead();
 
 		testData.LoadImages(ij);
 		RandomAccessibleInterval<FloatType> imgF = testData.getImg();
@@ -57,6 +60,12 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 			startTime));
 
 		ij.ui().show("cuda op deconvolved", outputCuda);
+
+		// Render projections along X and Z axes
+		ij.ui().show("Original (YZ)", VisualizationUtility.project(ij, imgF, 0));
+		ij.ui().show("Deconvolved (YZ)", VisualizationUtility.project(ij, outputCuda, 0));
+		ij.ui().show("Original (XY)", VisualizationUtility.project(ij, imgF, 2));
+		ij.ui().show("Deconvolved (XY)", VisualizationUtility.project(ij, outputCuda, 2));
 	}
 
 }
