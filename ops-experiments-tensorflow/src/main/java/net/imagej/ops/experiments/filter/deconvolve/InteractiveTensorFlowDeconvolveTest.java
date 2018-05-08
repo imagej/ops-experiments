@@ -6,7 +6,9 @@ import java.io.IOException;
 import net.imagej.ImageJ;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.testImages.Bars;
+import net.imagej.ops.experiments.testImages.CElegans;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
+import net.imagej.ops.experiments.testImages.HalfBead;
 import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
@@ -50,29 +52,14 @@ public class InteractiveTensorFlowDeconvolveTest {
 		ij.launch(args);
 		
 		// TODO: Modify tensoflow RL so it can take float images as input
-		/*DeconvolutionTestData testData = new Bars();
+		DeconvolutionTestData testData = new Bars();
 		//DeconvolutionTestData testData = new CElegans();
 		//DeconvolutionTestData testData = new HalfBead();
 
 		testData.LoadImages(ij);
-		RandomAccessibleInterval<FloatType> img = testData.getImg();
-		RandomAccessibleInterval<FloatType> psf = testData.getPSF();*/
+		Img<FloatType> imgF = (Img<FloatType>)testData.getImg();
+		Img<FloatType> psfF = (Img<FloatType>)testData.getPSF();
 
-		// String dir = "./images/bars-25pct";
-		// String imgPath = dir + "/data.tif";
-		// String psfPath = dir + "/kernel.tif";
-		final String imgPath = "../images/Bars-G10-P15-stack-cropped.tif";
-		final String psfPath = "../images/PSF-Bars-stack-cropped.tif";
-
-		final Img<T> img = (Img<T>) ij.dataset().open(imgPath).getImgPlus()
-			.getImg();
-
-		final Img<T> psf = (Img<T>) ij.dataset().open(psfPath).getImgPlus()
-			.getImg();
-
-		// convert image and PSF to float
-		final Img<FloatType> imgF = ij.op().convert().float32(img);
-		final Img<FloatType> psfF = ij.op().convert().float32(psf);
 
 		final int iterations = 100;
 		final int[] pad = new int[] { 20, 20, 20 };
