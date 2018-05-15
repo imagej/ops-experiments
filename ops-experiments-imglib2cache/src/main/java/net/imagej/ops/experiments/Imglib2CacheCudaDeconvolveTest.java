@@ -6,6 +6,8 @@ import static net.imglib2.cache.img.DiskCachedCellImgOptions.options;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
+import net.imagej.ops.experiments.testImages.Bars;
+import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
 import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.RandomAccessibleInterval;
@@ -32,38 +34,25 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 
 		ij.launch(args);
 
-		// load test images. Note the test images are relatively small so it's
-		// overkill processing as with cell caches
-		// in a real application one would only use cell caches with a large image
-		// that could not be processed in memory.
-		final String inputName = "../images/Bars-G10-P15-stack-cropped.tif";
-		final String psfName = "../images/PSF-Bars-stack-cropped-64.tif";
+		DeconvolutionTestData testData = new Bars();
+		// DeconvolutionTestData testData = new CElegans();
+		// DeconvolutionTestData testData = new HalfBead();
 
-		@SuppressWarnings("unchecked")
-		final Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus()
-			.getImg();
+		testData.LoadImages(ij);
+		RandomAccessibleInterval<FloatType> imgF = testData.getImg();
+		RandomAccessibleInterval<FloatType> psfF = testData.getPSF();
 
-		final Img<T> psf = (Img<T>) ij.dataset().open(psfName).getImgPlus()
-			.getImg();
 
-		final int[] cellDimensions = new int[] { (int) Math.ceil(img.dimension(0) /
-			2), (int) Math.ceil(img.dimension(1) / 2), (int) img.dimension(2) };
-
-		ImageJFunctions.show(img);
-		ImageJFunctions.show(psf);
+		ImageJFunctions.show(imgF);
+		ImageJFunctions.show(psfF);
 
 		final int iterations = 100;
-		final int cellBorderXY = (int) psf.dimension(0);
+		final int cellBorderXY = (int) psfF.dimension(0);
 		final int cellBorderZ = 0;
 
-		final Img<FloatType> imgF = ij.op().convert().float32(img);
-		Img<FloatType> psfF = ij.op().convert().float32(psf);
+		final int[] cellDimensions = new int[] { (int) Math.ceil(imgF.dimension(0) /
+			2), (int) Math.ceil(imgF.dimension(1) / 2), (int) imgF.dimension(2) };
 
-		// normalize PSF energy to 1
-		float sumPSF = ij.op().stats().sum(psfF).getRealFloat();
-		FloatType val = new FloatType();
-		val.set(sumPSF);
-		psfF = (Img<FloatType>) ij.op().math().divide(psfF, val);
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
