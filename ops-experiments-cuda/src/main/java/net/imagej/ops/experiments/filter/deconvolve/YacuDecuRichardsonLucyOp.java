@@ -28,7 +28,7 @@ import org.scijava.ui.UIService;
  * @param <K>
  * @param <C>
  */
-@Plugin(type = Ops.Deconvolve.RichardsonLucy.class, priority = Priority.LOW_PRIORITY)
+@Plugin(type = Ops.Deconvolve.RichardsonLucy.class, priority = Priority.LOW)
 public class YacuDecuRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & NativeType<O>, K extends RealType<K>, C extends ComplexType<C> & NativeType<C>>
 		extends AbstractNativeFFTFilterF<I, O, K, C> {
 

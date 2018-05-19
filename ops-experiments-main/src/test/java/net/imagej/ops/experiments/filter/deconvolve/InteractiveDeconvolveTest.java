@@ -4,6 +4,9 @@ package net.imagej.ops.experiments.filter.deconvolve;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
+import net.imagej.ops.experiments.testImages.Bars;
+import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -22,32 +25,19 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		ij.launch(args);
 
-		final String inputName = "../images/Bars-G10-P15-stack-cropped.tif";
-		final String psfName = "../images/PSF-Bars-stack-cropped.tif";
+		DeconvolutionTestData testData = new Bars();
+		// DeconvolutionTestData testData = new CElegans();
+		// DeconvolutionTestData testData = new HalfBead();
 
-		@SuppressWarnings("unchecked")
-		final Img<T> img = (Img<T>) ij.dataset().open(inputName).getImgPlus()
-			.getImg();
-		
-		final Img<FloatType> imgF=ij.op().convert().float32(img);
+		testData.LoadImages(ij);
+		RandomAccessibleInterval<FloatType> imgF = testData.getImg();
+		RandomAccessibleInterval<FloatType> psfF = testData.getPSF();
 
-		@SuppressWarnings("unchecked")
-		final Img<T> psf = (Img<T>) ij.dataset().open(psfName).getImgPlus()
-			.getImg();
+		ij.ui().show("bars ", imgF);
+		ij.ui().show("psf ", psfF);
 
-		// convert PSF to float
-		Img<FloatType> psfF = ij.op().convert().float32(psf);
-
-		// normalize PSF
-		final FloatType sum = new FloatType(ij.op().stats().sum(psfF)
-			.getRealFloat());
-		psfF = (Img<FloatType>) ij.op().math().divide(psfF, sum);
-
-		ij.ui().show("bars ", img);
-		ij.ui().show("psf ", psf);
-		
-		final int iterations=100;
-		final int pad=20;
+		final int iterations = 100;
+		final int pad = 20;
 
 		// run Ops Richardson Lucy
 

@@ -5,7 +5,10 @@ import java.io.IOException;
 
 import net.imagej.ImageJ;
 import net.imagej.ops.Ops;
+import net.imagej.ops.experiments.testImages.Bars;
+import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
 import net.imagej.ops.special.computer.UnaryComputerOp;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -45,6 +48,15 @@ public class InteractiveTensorFlowDeconvolveTest {
 
 		// launch it
 		ij.launch(args);
+		
+		// TODO: Modify tensoflow RL so it can take float images as input
+		/*DeconvolutionTestData testData = new Bars();
+		//DeconvolutionTestData testData = new CElegans();
+		//DeconvolutionTestData testData = new HalfBead();
+
+		testData.LoadImages(ij);
+		RandomAccessibleInterval<FloatType> img = testData.getImg();
+		RandomAccessibleInterval<FloatType> psf = testData.getPSF();*/
 
 		// String dir = "./images/bars-25pct";
 		// String imgPath = dir + "/data.tif";

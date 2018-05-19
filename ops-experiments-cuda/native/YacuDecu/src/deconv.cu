@@ -2,12 +2,15 @@
     deconv.cu
 
     Author: Bob Pepin - (originally obtained from https://github.com/bobpepin/YacuDecu)
-    Author: Brian Northan - very minor changes to dimension order of FFT plan in deconv_device function in order for this function to work on arrays from imglib2.
+    Author: Brian Northan 
+		- very minor changes to dimension order of FFT plan in deconv_device function in order for this function to work on arrays from imglib2.
+		- Add convolution 
+		- Add optional non-circulant normalization factor for edge handling  
+			see (http://bigwww.epfl.ch/deconvolution/challenge/index.html?p=documentation/theory/richardsonlucy)
 
     License: LGPL
 
 */
-
 
 #include <stdio.h>
 #include <iostream>
@@ -88,6 +91,9 @@ static float devFloatMean(float *a_dev, int N) {
     return m;
 }
 
+/* h_normal is the non-circulant normalization factor described here
+	http://bigwww.epfl.ch/deconvolution/challenge/index.html?p=documentation/theory/richardsonlucyi
+*/
 int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3, 
                   float *h_image, float *h_psf, float *h_object, float *h_normal) {
     int retval = 0;
@@ -689,7 +695,7 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     cufftHandle planR2C, planC2R;
 
 	std::cout<<"Starting Cuda convolution\n";
-	printf("input size: %d %d %d", N1, N2, N3");
+	printf("input size: %d %d %d", N1, N2, N3);
 
     float *image = 0; // convolved image (constant)
     float *psf=0;
