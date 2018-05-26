@@ -24,13 +24,13 @@ public class InteractiveMKLDeconvolveTest<T extends RealType<T> & NativeType<T>>
 		System.out.println("Lib path:" + libPathProperty);
 
 		ij.launch(args);
-	
+
 		final int iterations = 100;
 		@SuppressWarnings("unchecked")
-		
-		DeconvolutionTestData testData = new Bars();
-		//DeconvolutionTestData testData = new CElegans();
-		//DeconvolutionTestData testData = new HalfBead();
+
+		DeconvolutionTestData testData = new Bars("../images/");
+		// DeconvolutionTestData testData = new CElegans();
+		// DeconvolutionTestData testData = new HalfBead();
 
 		testData.LoadImages(ij);
 		RandomAccessibleInterval<FloatType> imgF = testData.getImg();
@@ -47,9 +47,8 @@ public class InteractiveMKLDeconvolveTest<T extends RealType<T> & NativeType<T>>
 
 		final RandomAccessibleInterval<FloatType> outputMKL =
 			(RandomAccessibleInterval<FloatType>) ij.op().run(
-				MKLRichardsonLucyOp.class, imgF, psfF, new long[] { 32, 32, 50 },null,null,null,
-				false, iterations,true);
-		
+				MKLRichardsonLucyOp.class, imgF, psfF, new long[] { 32, 32, 50 }, null,
+				null, null, false, iterations, true);
 
 		endTime = System.currentTimeMillis();
 

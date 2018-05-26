@@ -4,14 +4,9 @@ package net.imagej.ops.experiments.filter.deconvolve;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
-import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.VisualizationUtility;
 import net.imagej.ops.experiments.testImages.Bars;
-import net.imagej.ops.experiments.testImages.CElegans;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
-import net.imagej.ops.experiments.testImages.HalfBead;
-import net.imagej.ops.special.computer.UnaryComputerOp;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -31,7 +26,7 @@ public class InteractiveTensorFlowDeconvolveTest {
 		ij.launch(args);
 		
 		// TODO: Modify tensoflow RL so it can take float images as input
-		DeconvolutionTestData testData = new Bars();
+		DeconvolutionTestData testData = new Bars("../images/");
 		//DeconvolutionTestData testData = new CElegans();
 		//DeconvolutionTestData testData = new HalfBead();
 

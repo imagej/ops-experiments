@@ -33,7 +33,7 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 		final int borderZ = 50;
 
 		//DeconvolutionTestData testData = new Bars();
-		DeconvolutionTestData testData = new CElegans();
+		DeconvolutionTestData testData = new CElegans("../images/");
 		//DeconvolutionTestData testData = new HalfBead();
 
 		testData.LoadImages(ij);

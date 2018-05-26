@@ -34,14 +34,13 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 
 		ij.launch(args);
 
-		DeconvolutionTestData testData = new Bars();
+		DeconvolutionTestData testData = new Bars("../images/");
 		// DeconvolutionTestData testData = new CElegans();
 		// DeconvolutionTestData testData = new HalfBead();
 
 		testData.LoadImages(ij);
 		RandomAccessibleInterval<FloatType> imgF = testData.getImg();
 		RandomAccessibleInterval<FloatType> psfF = testData.getPSF();
-
 
 		ImageJFunctions.show(imgF);
 		ImageJFunctions.show(psfF);
@@ -52,7 +51,6 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 
 		final int[] cellDimensions = new int[] { (int) Math.ceil(imgF.dimension(0) /
 			2), (int) Math.ceil(imgF.dimension(1) / 2), (int) imgF.dimension(2) };
-
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
