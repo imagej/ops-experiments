@@ -28,8 +28,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
 /**
- * Wrap Richardson Lucy Cuda deconvolution in a UnaryComputerOp so we can run it
- * within the imglib2 cache framework.
+ * Calls YacuDecu (GPU) version of Richardson Lucy
  * 
  * @author bnorthan
  */
@@ -95,8 +94,8 @@ public class UnaryComputerYacuDecu2 extends
 
 		RandomAccessibleInterval<FloatType> paddedPSF=Views.zeroMin(ops.filter().padShiftFFTKernel(psf, fastExtendedDimensions));
 		
-		ui.show("intputIterable",inputIterable);
-		ui.show("paddedPSF",paddedPSF);
+		//ui.show("intputIterable",inputIterable);
+		//ui.show("paddedPSF",paddedPSF);
 
 		// copy to GPU memory
 		YacuDecuRichardsonLucyWrapper.load();
@@ -107,14 +106,12 @@ public class UnaryComputerYacuDecu2 extends
 
 		// convert image to FloatPointer
 		fpInput = ConvertersUtility.ii3DToFloatPointer(inputIterable);
-				
+
 		// convert PSF to FloatPointer
-		//fpPSF = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(Views
-		//	.interval(Views.extendZero(psf), psfInterval)));
-		
 		fpPSF = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(paddedPSF));
 
-		// convert image to FloatPointer
+		// convert image to FloatPointer to use as output buffer
+		// (this means first guess of object is the original image)
 		fpOutput = ConvertersUtility.ii3DToFloatPointer(inputIterable);
 
 		final long startTime = System.currentTimeMillis();
@@ -135,7 +132,7 @@ public class UnaryComputerYacuDecu2 extends
 		
 		final Img<FloatType> deconv = ArrayImgs.floats(arrayOutput, new long[] { inputIterable.dimension(0), inputIterable.dimension(1), inputIterable.dimension(2) });
 
-		ui.show("deconv",deconv);
+		//ui.show("deconv",deconv);
 		
 		// copy the extended deconvolution to the original cell
 		Cursor<FloatType> c1 = Views.iterable(Views.zeroMin(output)).cursor();
