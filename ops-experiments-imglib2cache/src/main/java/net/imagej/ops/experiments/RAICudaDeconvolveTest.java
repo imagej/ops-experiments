@@ -4,6 +4,7 @@ package net.imagej.ops.experiments;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
+import net.imagej.ops.experiments.filter.deconvolve.UnaryComputerYacuDecuNC;
 import net.imagej.ops.experiments.testImages.CElegans;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
 import net.imagej.ops.special.computer.Computers;

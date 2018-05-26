@@ -1,10 +1,9 @@
 
-package net.imagej.ops.experiments;
+package net.imagej.ops.experiments.filter.deconvolve;
 
 import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
-import net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyOp;
-import net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyWrapper;
+import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.filter.fftSize.DefaultComputeFFTSize;
 import net.imagej.ops.special.computer.AbstractUnaryComputerOp;
 import net.imagej.ops.special.function.BinaryFunctionOp;
@@ -33,7 +32,7 @@ import org.scijava.ui.UIService;
  * @author bnorthan
  */
 @Plugin(type = Ops.Deconvolve.RichardsonLucy.class, priority = Priority.LOW)
-public class UnaryComputerYacuDecu2 extends
+public class UnaryComputerYacuDecu extends
 	AbstractUnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>>
 {
 	
