@@ -1,10 +1,9 @@
 
-package net.imagej.ops.experiments;
+package net.imagej.ops.experiments.filter.deconvolve;
 
 import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
-import net.imagej.ops.experiments.filter.deconvolve.CudaDeconvolutionUtility;
-import net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyWrapper;
+import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.filter.fftSize.DefaultComputeFFTSize;
 import net.imagej.ops.special.computer.AbstractUnaryComputerOp;
 import net.imglib2.Cursor;

@@ -54,7 +54,7 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
-			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecu.class,
+			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecuWrapper.class,
 				RandomAccessibleInterval.class, imgF, psfF, new long[] { cellBorderXY,
 					cellBorderXY, cellBorderZ }, iterations);
 
