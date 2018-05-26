@@ -4,20 +4,17 @@ package net.imagej.ops.experiments;
 import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.filter.deconvolve.CudaDeconvolutionUtility;
-import net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyOp;
 import net.imagej.ops.experiments.filter.deconvolve.YacuDecuRichardsonLucyWrapper;
 import net.imagej.ops.filter.fftSize.DefaultComputeFFTSize;
 import net.imagej.ops.special.computer.AbstractUnaryComputerOp;
-import net.imagej.ops.special.function.BinaryFunctionOp;
-import net.imagej.ops.special.function.Functions;
 import net.imglib2.Cursor;
 import net.imglib2.FinalDimensions;
 import net.imglib2.FinalInterval;
-import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
@@ -28,12 +25,11 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
-import net.imglib2.outofbounds.OutOfBoundsConstantValue;
-import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
-
 /**
- * Wrap Richardson Lucy Cuda deconvolution in a UnaryComputerOp so we can run it
- * within the imglib2 cache framework.
+ * 
+ * Non-circulant version of Richardson Lucy
+ * 
+ * http://bigwww.epfl.ch/deconvolution/challenge/index.html?p=documentation/theory/richardsonlucy
  * 
  * @author bnorthan
  */
@@ -67,7 +63,7 @@ public class UnaryComputerYacuDecuNC extends
 		log.info("max: " + output.max(0) + " " + output.max(1) + " " + output.max(
 			2));
 
-		// min and max of the cell we are generating data for
+		// min and max of the output region we are generating data for
 		final long[] min = new long[] { output.min(0), output.min(1), output.min(
 			2) };
 		final long[] max = new long[] { output.max(0), output.max(1), output.max(
@@ -100,32 +96,29 @@ public class UnaryComputerYacuDecuNC extends
 
 		FinalInterval inputInterval = new FinalInterval(min, max);
 
-		FinalInterval extendedInterval = new FinalInterval(minExtendedInput,
-			maxExtendedInput);
-
-		IterableInterval<FloatType> inputIterable = Views.zeroMin(Views.interval(
-			Views.extendMirrorSingle(input), inputInterval));
-
+		// make a copy of the input so we can extend by zero
 		Img<FloatType> inputCopy = ops.create().img(inputInterval, new FloatType());
-		
-		ops.copy().rai(inputCopy,Views.interval(input, inputInterval));
-		
-		ui.show("copy", inputCopy);
 
-		@SuppressWarnings("unchecked")
+		ops.copy().rai(inputCopy, Views.interval(input, inputInterval));
+
+		//ui.show("copy", inputCopy);
+
+		// pad by zeroes
 		RandomAccessibleInterval<FloatType> paddedInput = ops.filter().padInput(
-			inputCopy, fastExtendedDimensions, new OutOfBoundsConstantValueFactory(
+			inputCopy, fastExtendedDimensions,
+			new OutOfBoundsConstantValueFactory<FloatType, RandomAccessibleInterval<FloatType>>(
 				new FloatType()));
-		
-		paddedInput=Views.zeroMin(paddedInput);
-		
+
+		paddedInput = Views.zeroMin(paddedInput);
+
+		// pad PSF by zeroes
 		RandomAccessibleInterval<FloatType> paddedPSF = Views.zeroMin(ops.filter()
 			.padShiftFFTKernel(psf, fastExtendedDimensions));
 
-		ui.show("paddedInput", paddedInput);
-		ui.show("paddedPSF", paddedPSF);
+		//ui.show("paddedInput", paddedInput);
+		// ui.show("paddedPSF", paddedPSF);
 
-		// copy to GPU memory
+		// load the YacuDecu library
 		YacuDecuRichardsonLucyWrapper.load();
 
 		FloatPointer fpInput = null;
@@ -133,34 +126,35 @@ public class UnaryComputerYacuDecuNC extends
 		FloatPointer fpOutput = null;
 
 		// convert image to FloatPointer
-		
-		fpInput = ConvertersUtility.ii3DToFloatPointer(Views.iterable((paddedInput)));
+		fpInput = ConvertersUtility.ii3DToFloatPointer(Views.iterable(
+			(paddedInput)));
 
 		// convert PSF to FloatPointer
-		// fpPSF = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(Views
-		// .interval(Views.extendZero(psf), psfInterval)));
-
 		fpPSF = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(paddedPSF));
 
-		// convert image to FloatPointer
-		
-		int paddedSize = (int) (paddedInput.dimension(0) * paddedInput
-				.dimension(1) * paddedInput.dimension(2));
+		int paddedSize = (int) (paddedInput.dimension(0) * paddedInput.dimension(
+			1) * paddedInput.dimension(2));
 
-		float mean=ops.stats().mean(Views.iterable(input)).getRealFloat()/paddedSize;
-		
+		// compute mean of image and divide by padded size
+		float meanOverPaddedSize = ops.stats().mean(Views.iterable(input)).getRealFloat() /
+			paddedSize;
+
+		// create output 
 		fpOutput = new FloatPointer(paddedSize);
-		
-		for (int i=0;i<paddedSize;i++) {
-			fpOutput.put(i,mean);
+
+		// set first guess to flat sheet 
+		for (int i = 0; i < paddedSize; i++) {
+			fpOutput.put(i, meanOverPaddedSize);
 		}
-		
-		FloatPointer normalFP=CudaDeconvolutionUtility.createNormalizationFactor(ops, paddedInput, output,
-			fpPSF,null,null);	
+
+		// create normalization factor needed for non-circulant deconvolution 
+		// see http://bigwww.epfl.ch/deconvolution/challenge/index.html?p=documentation/theory/richardsonlucy
+		FloatPointer normalFP = CudaDeconvolutionUtility.createNormalizationFactor(
+			ops, paddedInput, output, fpPSF, null, null);
 
 		final long startTime = System.currentTimeMillis();
 
-		// Call the Cuda wrapper
+		// Call the YacuDecu wrapper
 		YacuDecuRichardsonLucyWrapper.deconv_device(iterations, (int) paddedInput
 			.dimension(2), (int) paddedInput.dimension(1), (int) paddedInput
 				.dimension(0), fpInput, fpPSF, fpOutput, normalFP);
@@ -172,12 +166,12 @@ public class UnaryComputerYacuDecuNC extends
 		fpOutput.get(arrayOutput);
 
 		final Img<FloatType> deconv = ArrayImgs.floats(arrayOutput, new long[] {
-			paddedInput.dimension(0), paddedInput.dimension(1), paddedInput
-				.dimension(2) });
+			paddedInput.dimension(0), paddedInput.dimension(1), paddedInput.dimension(
+				2) });
 
-		ui.show("deconv", deconv);
+		//ui.show("deconv", deconv);
 
-		// copy the extended deconvolution to the original cell
+		// copy the extended deconvolution to the original output
 		Cursor<FloatType> c1 = Views.iterable(Views.zeroMin(output)).cursor();
 
 		RandomAccessibleInterval<FloatType> r = Views.zeroMin(Views.interval(deconv,
