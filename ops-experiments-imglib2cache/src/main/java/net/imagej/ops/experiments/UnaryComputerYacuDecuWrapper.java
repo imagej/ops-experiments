@@ -26,7 +26,7 @@ import org.scijava.ui.UIService;
  * @author bnorthan
  */
 @Plugin(type = Ops.Deconvolve.RichardsonLucy.class, priority = Priority.LOW)
-public class UnaryComputerYacuDecu extends
+public class UnaryComputerYacuDecuWrapper extends
 	AbstractUnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>>
 {
 

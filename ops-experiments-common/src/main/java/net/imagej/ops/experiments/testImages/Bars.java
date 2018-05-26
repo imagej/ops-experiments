@@ -14,6 +14,10 @@ public class Bars<T extends RealType<T> & NativeType<T>> extends
 	AbstractDeconvolutionTestData<T>
 {
 
+	public Bars(String directoryName) {
+		super(directoryName);
+	}
+
 	private Img<FloatType> imgF;
 	private Img<FloatType> psfF;
 
@@ -29,8 +33,8 @@ public class Bars<T extends RealType<T> & NativeType<T>> extends
 
 	@Override
 	public void LoadImages(ImageJ ij) throws IOException {
-		final String inputName = "../images/Bars-G10-P15-stack-cropped.tif";
-		final String psfName = "../images/PSF-Bars-stack-cropped.tif";
+		final String inputName = "/Bars-G10-P15-stack-cropped.tif";
+		final String psfName = "/PSF-Bars-stack-cropped-64.tif";
 
 		imgF = loadAndConvertToFloat(inputName, ij);
 		psfF = loadPSFAndNormalize(psfName, ij);
