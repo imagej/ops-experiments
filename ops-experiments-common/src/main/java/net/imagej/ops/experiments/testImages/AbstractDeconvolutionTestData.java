@@ -14,12 +14,20 @@ public abstract class AbstractDeconvolutionTestData<T extends RealType<T> & Nati
 	implements DeconvolutionTestData
 {
 
+	private String directoryName;
+
+	public AbstractDeconvolutionTestData(String directoryName) {
+		this.directoryName = directoryName;
+	}
+
 	protected Img<FloatType> loadAndConvertToFloat(String name, ImageJ ij)
 		throws IOException
 	{
+		String fullName = directoryName + "/" + name;
 
 		@SuppressWarnings("unchecked")
-		final Img<T> img = (Img<T>) ij.dataset().open(name).getImgPlus().getImg();
+		final Img<T> img = (Img<T>) ij.dataset().open(fullName).getImgPlus()
+			.getImg();
 		return ij.op().convert().float32(img);
 	}
 
@@ -36,7 +44,8 @@ public abstract class AbstractDeconvolutionTestData<T extends RealType<T> & Nati
 
 	protected Img<FloatType> createTheoreticalPSF(Dimensions psfDimensions,
 		double numericalAperture, double wavelength, double riSample,
-		double riImmersion, double xySpacing, double zSpacing, double depth, ImageJ ij)
+		double riImmersion, double xySpacing, double zSpacing, double depth,
+		ImageJ ij)
 	{
 		// create the diffraction based psf
 		Img<FloatType> psfF = ij.op().create().kernelDiffraction(psfDimensions,

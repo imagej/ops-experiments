@@ -25,7 +25,7 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		ij.launch(args);
 
-		DeconvolutionTestData testData = new Bars();
+		DeconvolutionTestData testData = new Bars("../images/");
 		// DeconvolutionTestData testData = new CElegans();
 		// DeconvolutionTestData testData = new HalfBead();
 
