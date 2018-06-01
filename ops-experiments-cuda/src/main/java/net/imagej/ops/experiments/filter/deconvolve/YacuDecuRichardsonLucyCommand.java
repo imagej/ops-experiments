@@ -1,11 +1,14 @@
 package net.imagej.ops.experiments.filter.deconvolve;
 
+import net.imagej.Dataset;
 import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
 import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 
 import org.scijava.ItemIO;
@@ -14,72 +17,45 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 @Plugin(type = Command.class, headless = true, menuPath = "Plugins>OpsExperiments>YacuDecu Deconvolution")
-public class YacuDecuRichardsonLucyCommand implements Command {
+public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>> implements Command {
 	@Parameter
 	OpService ops;
 
 	@Parameter
-	ImgPlus img;
+	Dataset img;
+
+	@Parameter
+	Dataset psf;
 
 	@Parameter(type = ItemIO.INPUT)
 	Integer iterations = 100;
 
-	@Parameter(type = ItemIO.INPUT)
-	Float numericalAperture = 1.4f;
-
-	@Parameter(type = ItemIO.INPUT)
-	Float wavelength = 550f;
-
-	@Parameter(type = ItemIO.INPUT)
-	Float riImmersion = 1.5f;
-
-	@Parameter(type = ItemIO.INPUT)
-	Float riSample = 1.4f;
-
-	@Parameter(type = ItemIO.INPUT)
-	Float xySpacing = 62.9f;
-
-	@Parameter(type = ItemIO.INPUT)
-	Float zSpacing = 160f;
-
-	@Parameter(type = ItemIO.INPUT)
-	Float depth = 0f;
-
 	@Parameter(type = ItemIO.OUTPUT)
-	Img psf;
+	Img<FloatType> deconvolved;
 
-	@Parameter(type = ItemIO.OUTPUT)
-	Img deconvolved;
-
+	@Override
 	public void run() {
 
-		Img<FloatType> imgF = ops.convert().float32(img);
-
-		wavelength = wavelength * 1E-9f;
-		xySpacing = xySpacing * 1E-9f;
-		zSpacing = zSpacing * 1E-9F;
-
-		if (wavelength < 545E-9) {
-			wavelength = 545E-9f;
-		}
-		// create the diffraction based psf
-		psf = (Img) ops.create().kernelDiffraction(img, numericalAperture, wavelength, riSample, riImmersion, xySpacing,
-				zSpacing, depth, new FloatType());
+		// convert PSF and Image to Float Type
+		@SuppressWarnings("unchecked")
+		Img<FloatType> imgF = ops.convert().float32((Img<T>)img.getImgPlus().getImg());
+		@SuppressWarnings("unchecked")
+		Img<FloatType> psfF = ops.convert().float32((Img<T>)psf.getImgPlus().getImg());
 
 		// normalize PSF energy to 1
-		float sumPSF = ops.stats().sum(psf).getRealFloat();
+		float sumPSF = ops.stats().sum(psfF).getRealFloat();
 		FloatType val = new FloatType();
 		val.set(sumPSF);
-		psf = (Img<FloatType>) ops.math().divide(psf, val);
+		psfF = (Img<FloatType>) ops.math().divide(psfF, val);
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
 			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecuNC.class,
-				RandomAccessibleInterval.class, imgF, psf, iterations);
+				RandomAccessibleInterval.class, imgF, psfF, iterations);
 
-		RandomAccessibleInterval<FloatType> out = ops.create().img(imgF);
+		deconvolved = ops.create().img(imgF);
 
-		deconvolver.compute(imgF, out);
+		deconvolver.compute(imgF, deconvolved);
 
 	}
 
