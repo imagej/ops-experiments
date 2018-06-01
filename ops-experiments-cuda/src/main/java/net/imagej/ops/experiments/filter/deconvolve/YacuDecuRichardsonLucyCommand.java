@@ -27,7 +27,7 @@ public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>
 	@Parameter
 	Dataset psf;
 
-	@Parameter(type = ItemIO.INPUT)
+	@Parameter
 	Integer iterations = 100;
 
 	@Parameter(type = ItemIO.OUTPUT)
