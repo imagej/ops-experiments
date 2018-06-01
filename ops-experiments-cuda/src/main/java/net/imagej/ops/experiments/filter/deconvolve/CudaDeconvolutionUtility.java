@@ -3,6 +3,8 @@ package net.imagej.ops.experiments.filter.deconvolve;
 
 import net.imagej.ops.OpService;
 import net.imagej.ops.experiments.ConvertersUtility;
+import net.imagej.ops.special.computer.Computers;
+import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
@@ -58,5 +60,29 @@ public class CudaDeconvolutionUtility {
 		}
 
 		return normalFP;
+	}
+
+	public static Img<FloatType> callYacuDecu(OpService ops, Img<FloatType> img,
+		Img<FloatType> psf, int numIterations)
+	{
+
+		Img<FloatType> deconvolved = ops.create().img(img);
+
+		callYacuDecu(ops, img, psf, deconvolved, numIterations);
+		return deconvolved;
+	}
+
+	public static void callYacuDecu(OpService ops,
+		RandomAccessibleInterval<FloatType> img,
+		RandomAccessibleInterval<FloatType> psf,
+		RandomAccessibleInterval<FloatType> deconvolved, int numIterations)
+	{
+		@SuppressWarnings("unchecked")
+		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
+			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecuNC.class,
+				RandomAccessibleInterval.class, img, psf, numIterations);
+
+		deconvolver.compute(img, deconvolved);
+
 	}
 }
