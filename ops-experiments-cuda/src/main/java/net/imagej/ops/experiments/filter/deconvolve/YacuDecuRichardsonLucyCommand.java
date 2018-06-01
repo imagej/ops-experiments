@@ -2,6 +2,9 @@ package net.imagej.ops.experiments.filter.deconvolve;
 
 import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
+import net.imagej.ops.special.computer.Computers;
+import net.imagej.ops.special.computer.UnaryComputerOp;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
 
@@ -69,7 +72,14 @@ public class YacuDecuRichardsonLucyCommand implements Command {
 		val.set(sumPSF);
 		psf = (Img<FloatType>) ops.math().divide(psf, val);
 
-		deconvolved = (Img) ops.run(YacuDecuRichardsonLucyOp.class, imgF, psf, new long[] { 0, 0, 0 }, iterations);
+		@SuppressWarnings("unchecked")
+		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
+			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecuNC.class,
+				RandomAccessibleInterval.class, imgF, psf, iterations);
+
+		RandomAccessibleInterval<FloatType> out = ops.create().img(imgF);
+
+		deconvolver.compute(imgF, out);
 
 	}
 
