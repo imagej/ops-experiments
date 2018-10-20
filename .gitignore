@@ -34,3 +34,5 @@ compile_commands.json
 CTestTestfile.cmake
 
 bin/
+
+.ipynb_checkpoints/

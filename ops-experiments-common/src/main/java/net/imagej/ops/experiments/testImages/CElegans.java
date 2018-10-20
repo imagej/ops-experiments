@@ -16,12 +16,16 @@ public class CElegans<T extends RealType<T> & NativeType<T>> extends
 	AbstractDeconvolutionTestData<T>
 {
 
+	public CElegans(String directoryName) {
+		super(directoryName);
+	}
+
 	private Img<FloatType> imgF;
 	private Img<FloatType> psfF;
 
 	@Override
 	public void LoadImages(ImageJ ij) throws IOException {
-		final String inputName = "../images/CElegans-CY3-crop.tif";
+		final String inputName = "/CElegans-CY3-crop.tif";
 		imgF = loadAndConvertToFloat(inputName, ij);
 
 		Dimensions psfDimensions = new FinalDimensions(65, 65, 128);
@@ -33,7 +37,7 @@ public class CElegans<T extends RealType<T> & NativeType<T>> extends
 		double xySpacing = 64.5E-9;
 		double zSpacing = 160E-9;
 		double depth = 0;
-	
+
 		// create the diffraction based psf
 		psfF = createTheoreticalPSF(psfDimensions, numericalAperture, wavelength,
 			riSample, riImmersion, xySpacing, zSpacing, depth, ij);

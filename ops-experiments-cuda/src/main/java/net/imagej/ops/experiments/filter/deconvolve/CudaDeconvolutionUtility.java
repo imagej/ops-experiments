@@ -3,6 +3,8 @@ package net.imagej.ops.experiments.filter.deconvolve;
 
 import net.imagej.ops.OpService;
 import net.imagej.ops.experiments.ConvertersUtility;
+import net.imagej.ops.special.computer.Computers;
+import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
@@ -14,16 +16,16 @@ import org.bytedeco.javacpp.FloatPointer;
 
 public class CudaDeconvolutionUtility {
 
-	static FloatPointer createNormalizationFactor(final OpService ops,
-		final Interval inputDimensions, final Interval outputDimensions,
+	public static FloatPointer createNormalizationFactor(final OpService ops,
+		final Interval paddedDimensions, final Interval outputDimensions,
 		final FloatPointer kernel, final FloatPointer X_, final FloatPointer H_)
 	{
 		// compute convolution interval
-		final long[] start = new long[inputDimensions.numDimensions()];
-		final long[] end = new long[inputDimensions.numDimensions()];
+		final long[] start = new long[paddedDimensions.numDimensions()];
+		final long[] end = new long[paddedDimensions.numDimensions()];
 
 		for (int d = 0; d < outputDimensions.numDimensions(); d++) {
-			final long offset = (inputDimensions.dimension(d) - outputDimensions
+			final long offset = (paddedDimensions.dimension(d) - outputDimensions
 				.dimension(d)) / 2;
 			start[d] = offset;
 			end[d] = start[d] + outputDimensions.dimension(d) - 1;
@@ -31,7 +33,7 @@ public class CudaDeconvolutionUtility {
 
 		final Interval convolutionInterval = new FinalInterval(start, end);
 
-		final Img<FloatType> normal = ops.create().img(inputDimensions,
+		final Img<FloatType> normal = ops.create().img(paddedDimensions,
 			new FloatType());
 		final RandomAccessibleInterval<FloatType> temp = Views.interval(Views
 			.zeroMin(normal), convolutionInterval);
@@ -46,8 +48,8 @@ public class CudaDeconvolutionUtility {
 			.zeroMin(normal));
 
 		// Call the cuda wrapper to make normal
-		YacuDecuRichardsonLucyWrapper.conv_device((int) inputDimensions.dimension(
-			2), (int) inputDimensions.dimension(1), (int) inputDimensions.dimension(
+		YacuDecuRichardsonLucyWrapper.conv_device((int) paddedDimensions.dimension(
+			2), (int) paddedDimensions.dimension(1), (int) paddedDimensions.dimension(
 				0), normalFP, kernel, normalFP, 1);
 
 		// remove small values from the mask
@@ -58,5 +60,29 @@ public class CudaDeconvolutionUtility {
 		}
 
 		return normalFP;
+	}
+
+	public static Img<FloatType> callYacuDecu(OpService ops, Img<FloatType> img,
+		Img<FloatType> psf, int numIterations)
+	{
+
+		Img<FloatType> deconvolved = ops.create().img(img);
+
+		callYacuDecu(ops, img, psf, deconvolved, numIterations);
+		return deconvolved;
+	}
+
+	public static void callYacuDecu(OpService ops,
+		RandomAccessibleInterval<FloatType> img,
+		RandomAccessibleInterval<FloatType> psf,
+		RandomAccessibleInterval<FloatType> deconvolved, int numIterations)
+	{
+		@SuppressWarnings("unchecked")
+		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
+			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecuNC.class,
+				RandomAccessibleInterval.class, img, psf, numIterations);
+
+		deconvolver.compute(img, deconvolved);
+
 	}
 }

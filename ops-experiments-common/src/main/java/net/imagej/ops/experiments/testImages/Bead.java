@@ -14,6 +14,10 @@ public class Bead<T extends RealType<T> & NativeType<T>> extends
 	AbstractDeconvolutionTestData<T>
 {
 
+	public Bead(String directoryName) {
+		super(directoryName);
+	}
+
 	private Img<FloatType> imgF;
 	private Img<FloatType> psfF;
 
@@ -29,8 +33,8 @@ public class Bead<T extends RealType<T> & NativeType<T>> extends
 
 	@Override
 	public void LoadImages(ImageJ ij) throws IOException {
-		final String inputName = "../images/BeadStack-crop.tif";
-		final String psfName = "../images/PSF-BeadStack-crop.tif";
+		final String inputName = "/BeadStack-crop.tif";
+		final String psfName = "/PSF-BeadStack-crop.tif";
 
 		imgF = loadAndConvertToFloat(inputName, ij);
 		psfF = loadPSFAndNormalize(psfName, ij);
