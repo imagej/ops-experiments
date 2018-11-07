@@ -626,7 +626,10 @@ cufftResult createPlans(size_t N1, size_t N2, size_t N3, cufftHandle *planR2C, c
         *workSize = tmp;
 
     cudaError_t err = cudaMalloc(workArea, *workSize);
-    if(err) return CUFFT_ALLOC_FAILED;
+    if(err) {
+		std::cout<<"cudaMalloc of workArea failed: "<<*workSize<<"\n";
+		return CUFFT_ALLOC_FAILED;
+	}
 
     r = cufftSetWorkArea(*planR2C, *workArea);
     if(r) goto error;
@@ -734,17 +737,32 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     cudaProfilerStart();
 
     err = cudaMalloc(&image, mSpatial);
-    if(err) goto cudaErr;
+    if(err)  {
+		std::cout<<"Error allocating image of size "<<mSpatial<<"\n";
+		goto cudaErr;
+	}
     err = cudaMalloc(&out, mSpatial);
-    if(err) goto cudaErr;
+    if(err)  {
+		std::cout<<"Error allocating output of size "<<mSpatial<<"\n";
+		goto cudaErr;
+	}
 	err = cudaMalloc(&psf, mSpatial);
-    if(err) goto cudaErr;
+    if(err)  {
+		std::cout<<"Error allocating psf of size "<<mSpatial<<"\n";
+		goto cudaErr;
+	}
 	
     err = cudaMalloc(&buf, mFreq); // mFreq > mSpatial
-    if(err) goto cudaErr;
+     if(err)  {
+		std::cout<<"Error allocating freq buffer of size "<<mFreq<<"\n";
+		goto cudaErr;
+	}
 
 	err = cudaMalloc(&otf, mFreq); // mFreq > mSpatial
-    if(err) goto cudaErr;
+    if(err)  {
+		std::cout<<"Error allocating otf of size "<<mFreq<<"\n";
+		goto cudaErr;
+	}
 
     err = cudaMemset(image, 0, mSpatial);
     if(err) goto cudaErr;
@@ -762,8 +780,11 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     // BN it looks like this function was originall written for the array organization used in matlab.  I Changed the order of the dimensions
     // to be compatible with imglib2 (java). TODO - add param for array organization 
     r = createPlans(N1, N2, N3, &planR2C, &planC2R, &workArea, &workSize);
-    if(r) goto cufftError;
-
+    if(r) {
+		std::cout<<"Error creating plans"<<"\n";
+		goto cufftError;
+	}
+		
     r = cufftExecR2C(planR2C, psf, otf);
     if(r) goto cufftError;
 
