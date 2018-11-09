@@ -142,30 +142,58 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 
     err = cudaMalloc(&image, mSpatial);
     if(err) goto cudaErr;
+
+	size_t freeMem, totalMem;
+
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
     err = cudaMalloc(&object, mSpatial);
     if(err) goto cudaErr;
+
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
 	err = cudaMalloc(&psf, mSpatial);
     if(err) goto cudaErr;
+
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
 	//err = cudaMalloc(&temp, mSpatial);
     //if(err) goto cudaErr;
 
 	if (h_normal!=NULL) {
 		err = cudaMalloc(&normal, mSpatial);
 		if (err) goto cudaErr;
+
+		cudaMemGetInfo(&freeMem, &totalMem);
+		std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
 	}
 	else {
 		normal = NULL;
 	}
 
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
     err = cudaMalloc(&otf, mFreq);
     if(err) goto cudaErr;
-    err = cudaMalloc(&buf, mFreq); // mFreq > mSpatial
+    
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
+	err = cudaMalloc(&buf, mFreq); // mFreq > mSpatial
     if(err) goto cudaErr;
 	
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
 
     err = cudaMemset(image, 0, mSpatial);
     if(err) goto cudaErr;
-    err = cudaMemset(object, 0, mSpatial);
+    	
+	err = cudaMemset(object, 0, mSpatial);
     if(err) goto cudaErr;
 
 	if (h_normal != NULL) {
@@ -187,11 +215,11 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 		if (err) goto cudaErr;
 	}
 
-
     // BN it looks like this function was originall written for the array organization used in matlab.  I Changed the order of the dimensions
     // to be compatible with imglib2 (java). TODO - add param for array organization 
     r = createPlans(N1, N2, N3, &planR2C, &planC2R, &workArea, &workSize);
-    if(r) goto cufftError;
+    	
+	if(r) goto cufftError;
 
     printf("Plans created.\n");
 
@@ -598,6 +626,7 @@ cleanup:
 
 cufftResult createPlans(size_t N1, size_t N2, size_t N3, cufftHandle *planR2C, cufftHandle *planC2R, void **workArea, size_t *workSize) {
     cufftResult r;
+	size_t freeMem, totalMem;
 
     r = cufftCreate(planR2C);
     if(r) return r;
@@ -622,26 +651,48 @@ cufftResult createPlans(size_t N1, size_t N2, size_t N3, cufftHandle *planR2C, c
     r = cufftGetSize3d(*planC2R, N1, N2, N3, CUFFT_R2C, &tmp);
     //r = cufftGetSize2d(*planC2R, N1, N2, CUFFT_R2C, &tmp);
     if(r) return r;
+
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << "Free mem "<<(float)freeMem/(float)(1024*1024*1024)<<" WorkSize R2C " << (float)(*workSize)/(float)(1024*1024*1024) << " WorkSize C2R " << (float)tmp/(float)(1024*1024*1024)<<"\n";
+
     if(tmp > *workSize)
         *workSize = tmp;
 
+	std::cout << "Malloc work area \n";
+	
     cudaError_t err = cudaMalloc(workArea, *workSize);
     if(err) {
 		std::cout<<"cudaMalloc of workArea failed: "<<*workSize<<"\n";
 		return CUFFT_ALLOC_FAILED;
 	}
 
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
+
     r = cufftSetWorkArea(*planR2C, *workArea);
-    if(r) goto error;
+	if (r) {
+		std::cout << "Error setting work area R2C\n";
+		goto error;
+	}
     r = cufftMakePlan3d(*planR2C, N1, N2, N3, CUFFT_R2C, &tmp);
     //r = cufftMakePlan2d(*planR2C, N1, N2, CUFFT_R2C, &tmp);
-    if(r) goto error;
+	if (r) {
+		std::cout << "Error "<<r<<" when making plan R2C\n";
+		goto error;
+	}
 
     r = cufftSetWorkArea(*planC2R, *workArea);
-    if(r) goto error;
+	if (r) {
+		std::cout << "Error setting work area C2R\n";
+		goto error;
+	}
     r = cufftMakePlan3d(*planC2R, N1, N2, N3, CUFFT_C2R, &tmp);
     //r = cufftMakePlan2d(*planC2R, N1, N2, CUFFT_C2R, &tmp);
-    if(r) goto error;
+	if (r) {
+		std::cout << "Error making plan C2R\n";
+		goto error;
+	}
 
     return CUFFT_SUCCESS;
 error:
@@ -698,6 +749,9 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     cudaError_t err;
     cufftHandle planR2C, planC2R;
 
+	// memroy information
+	size_t freeMem, totalMem;
+
 	std::cout<<"Starting Cuda convolution\n";
 	printf("input size: %d %d %d", N1, N2, N3);
 
@@ -729,28 +783,42 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
 	fflush(stdin);
 
-	std::cout<<"N: "<<nSpatial<<" M: "<<mSpatial<<"\n"<<std::flush;
+	std::cout<<"N spatial: "<<nSpatial<<" M spatial: "<<mSpatial<<"\n"<<std::flush;
+	std::cout << "N freq: " << nFreq << " M freq: " << mFreq << "\n" << std::flush;
 	std::cout<<"Blocks: "<<spatialBlocks.x<<" x "<<spatialBlocks.y<<" x "<<spatialBlocks.z<<", Threads: "<<spatialThreadsPerBlock.x<<" x "<<spatialThreadsPerBlock.y<<" x "<<spatialThreadsPerBlock.z<<"\n";
     
 	cudaDeviceReset();
 
     cudaProfilerStart();
 
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
     err = cudaMalloc(&image, mSpatial);
     if(err)  {
 		std::cout<<"Error allocating image of size "<<mSpatial<<"\n";
 		goto cudaErr;
 	}
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
+
     err = cudaMalloc(&out, mSpatial);
     if(err)  {
 		std::cout<<"Error allocating output of size "<<mSpatial<<"\n";
 		goto cudaErr;
 	}
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
 	err = cudaMalloc(&psf, mSpatial);
     if(err)  {
 		std::cout<<"Error allocating psf of size "<<mSpatial<<"\n";
 		goto cudaErr;
 	}
+
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
 	
     err = cudaMalloc(&buf, mFreq); // mFreq > mSpatial
      if(err)  {
@@ -758,11 +826,17 @@ int conv_device(size_t N1, size_t N2, size_t N3,
 		goto cudaErr;
 	}
 
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+
 	err = cudaMalloc(&otf, mFreq); // mFreq > mSpatial
     if(err)  {
 		std::cout<<"Error allocating otf of size "<<mFreq<<"\n";
 		goto cudaErr;
 	}
+
+	cudaMemGetInfo(&freeMem, &totalMem);
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
 
     err = cudaMemset(image, 0, mSpatial);
     if(err) goto cudaErr;
@@ -827,6 +901,7 @@ cleanup:
     if(out) cudaFree(out);
     if(otf) cudaFree(otf);
     if(buf) cudaFree(buf);
+	if (psf) cudaFree(psf);
     if(workArea) cudaFree(workArea);
     cudaProfilerStop();
     cudaDeviceReset();
