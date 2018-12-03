@@ -4,9 +4,11 @@
     Author: Bob Pepin - (originally obtained from https://github.com/bobpepin/YacuDecu)
     Author: Brian Northan 
 		- changes to dimension order of FFT plan in deconv_device function in order for this function to work on arrays from imglib2.
-		- changed multiplication if Richardson Lucy loop to
+		- changed multiplication in Richardson Lucy loop to correlation
+		- add complex conjugate multiplication
 		- Add convolution function
 		- Add optional non-circulant normalization factor for edge handling  
+		- Added several debugging message to make it easier to monitor memory use
 			see (http://bigwww.epfl.ch/deconvolution/challenge/index.html?p=documentation/theory/richardsonlucy)
 
     License: LGPL
