@@ -1,0 +1,8 @@
+YacuDecu.lib: deconv.obj
+	nvcc -lib -Xlinker=/EXPORT:deconv_device -Xlinker=/EXPORT:conv_device -o YacuDecu.lib deconv.obj -lcufft
+
+deconv.obj: deconv.cu
+	nvcc -Xcompiler=/MD -O3 -c -o deconv.obj deconv.cu
+
+clean:
+	del *.asv *.dll *.exp *.lib *.obj mccExcludedFiles.log  readme.txt

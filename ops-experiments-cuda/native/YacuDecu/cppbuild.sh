@@ -26,7 +26,12 @@ case $PLATFORM in
         echo "TODO"
         ;;
     windows-x86_64)
-        echo "TODO"
+        echo "Windows-x86 64 build"
+        cp ../Makefile.windows Makefile.windows
+		mkdir -p ../../lib
+		nmake -f Makefile.windows clean
+        nmake -f Makefile.windows 
+        nmake -f Makefile.windows install
         ;;
     *)
         echo "Error: Platform \"$PLATFORM\" is not supported"
