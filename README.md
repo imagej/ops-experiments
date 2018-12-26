@@ -53,7 +53,3 @@ A Mac build would require a bit of hacking.
 
 3.  In [YacuDecuRichardsonLucyWrapper](https://github.com/imagej/ops-experiments/blob/master/ops-experiments-cuda/src/main/java/net/imagej/ops/experiments/filter/deconvolve/YacuDecuRichardsonLucyWrapper.java) add a MacOsx Platform section to the properties annotaiton.  This is where the location of the Cuda Toolkit is specified.  
 
-
-
-### Linux
-2.  Simply typing 
