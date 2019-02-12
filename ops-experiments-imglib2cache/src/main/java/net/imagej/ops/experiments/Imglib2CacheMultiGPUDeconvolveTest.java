@@ -95,8 +95,8 @@ public class Imglib2CacheMultiGPUDeconvolveTest<T extends RealType<T> & NativeTy
 			FutureTask future = new FutureTask(() -> {
 				deconvolver.compute(imgF, img);
 			}, "finished");
-			queue.put(future);
-			future.get();
+			queue.put(future); // blocks until space is free in queue
+			future.get(); // blocks until GPU thread has processed the job
 		};
 
 		// create a new image using the disk cache factory. Pass it the loader defined

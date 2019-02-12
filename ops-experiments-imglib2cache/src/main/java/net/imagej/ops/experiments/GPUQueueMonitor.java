@@ -24,7 +24,7 @@ public class GPUQueueMonitor extends Thread {
 			try {
 				FutureTask job = queue.take();
 				System.out.println("start decon on GPU " + deviceNum);
-				job.run();
+				job.run(); // will "complete" the future
 				System.out.println("finished decon on GPU " + deviceNum);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
