@@ -20,10 +20,12 @@ import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.cache.img.DiskCachedCellImg;
 import net.imglib2.cache.img.DiskCachedCellImgFactory;
 import net.imglib2.cache.img.DiskCachedCellImgOptions;
 import net.imglib2.cache.img.DiskCachedCellImgOptions.CacheType;
 import net.imglib2.img.Img;
+import net.imglib2.img.cell.Cell;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -94,9 +96,13 @@ public class Imglib2CacheCudaDeconvolve<T extends RealType<T> & NativeType<T>> i
 		//factory.create
 		// create a new image using the disk cache factory. As the loader we pass it
 		// a lambda that calls the deconvolution op.
-		deconvolved = factory.create(new long[] { imgF.dimension(0), imgF.dimension(1), imgF.dimension(2) }, type,
+		DiskCachedCellImg<FloatType, RandomAccessibleInterval<FloatType>> test = (DiskCachedCellImg)factory.create(new long[] { imgF.dimension(0), imgF.dimension(1), imgF.dimension(2) }, type,
 				cell -> deconvolver.compute(imgF, cell), options().initializeCellsAsDirty(true));
 		
+		test.getCells().forEach(Cell::getData);
+		
+		deconvolved=test;
+		/*
 		RandomAccess<FloatType> ra = deconvolved.randomAccess();
 		
 		// trigger
@@ -105,7 +111,7 @@ public class Imglib2CacheCudaDeconvolve<T extends RealType<T> & NativeType<T>> i
 				ra.setPosition(new int[] {x,y,0});
 				ra.get().getRealDouble();
 			}
-		}
+		}*/
 
 	}
 
