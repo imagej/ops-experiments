@@ -24,6 +24,8 @@ public class YacuDecuRichardsonLucyWrapper {
 
 	public static native void conv_device(int n1, int n2, int n3,
 		FloatPointer image, FloatPointer psf, FloatPointer out, int correlate);
+	
+	public static native void setDevice(int device); 
 
 	public static void load() {
 		Loader.load();
