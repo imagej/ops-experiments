@@ -910,3 +910,7 @@ cleanup:
     return retval;
 }
 
+extern "C" int setDevice(int device) {
+	return(cudaSetDevice(device));
+}
+

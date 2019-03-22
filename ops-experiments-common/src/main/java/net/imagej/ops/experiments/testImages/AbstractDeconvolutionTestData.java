@@ -3,6 +3,7 @@ package net.imagej.ops.experiments.testImages;
 
 import java.io.IOException;
 
+import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imglib2.Dimensions;
 import net.imglib2.img.Img;
@@ -24,9 +25,12 @@ public abstract class AbstractDeconvolutionTestData<T extends RealType<T> & Nati
 		throws IOException
 	{
 		String fullName = directoryName + "/" + name;
+		
+		
 
 		@SuppressWarnings("unchecked")
-		final Img<T> img = (Img<T>) ij.dataset().open(fullName).getImgPlus()
+		final Dataset data=(Dataset)(ij.io().open(fullName));
+		final Img<T> img = (Img<T>) data.getImgPlus()
 			.getImg();
 		return ij.op().convert().float32(img);
 	}
