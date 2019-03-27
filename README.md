@@ -39,7 +39,7 @@ Note:  If the build cannot find the Cuda Toolkit, check to make sure the toolkit
 
 ### Windows (Using Visual Studio)
 
-1.  Start a “x64 native tools VS” terminal, then within the "x64 native tools" VS terminal invoke a mingw64 terminal using “C:\Program Files\Git\bin\sh.exe”.  (This essentially gives you a bash terminal that has a Microsoft C++ build environment set up within it.  Alternatively you could write a bash script that sets up the required paths and system variables. 
+1.  Start a “x64 native tools VS” terminal, then within the "x64 native tools" VS terminal invoke a mingw64 terminal using `C:\Program Files\Git\bin\sh.exe`.  (This essentially gives you a bash terminal that has a Microsoft C++ build environment set up within it.  Alternatively you could write a bash script that sets up the required paths and system variables). 
 
 2.  Build [ops-experiments-cuda](https://github.com/imagej/ops-experiments/tree/master/ops-experiments-cuda) using maven. 
 
@@ -47,9 +47,9 @@ Note:  If the build cannot find the Cuda Toolkit, check to make sure the toolkit
 
 A Mac build would require a bit of hacking.
 
-1.  Write a MacOsx specific Makefile to build YacuDecu (deconv.cu) and place it [here](https://github.com/imagej/ops-experiments/tree/master/ops-experiments-cuda/native/YacuDecu).  Note ops experiments uses a customized version of YacuDecu with a few enhancements and bug fixes, so make sure you build the version of YacuDecu (deconv.cu) that is in the ops-experiments repo [here](https://github.com/imagej/ops-experiments/tree/master/ops-experiments-cuda/native/YacuDecu/src). 
+1.  Write a MacOsx specific Makefile to build YacuDecu (`deconv.cu`) and place it [here](https://github.com/imagej/ops-experiments/tree/master/ops-experiments-cuda/native/YacuDecu).  Note ops experiments uses a customized version of YacuDecu with a few enhancements and bug fixes, so make sure you build the version of YacuDecu (`deconv.cu`) that is in the ops-experiments repo [here](https://github.com/imagej/ops-experiments/tree/master/ops-experiments-cuda/native/YacuDecu/src). 
 
-2.  Modify the following lines of [cppbuild.sh](https://github.com/imagej/ops-experiments/blob/master/ops-experiments-cuda/native/YacuDecu/cppbuild.sh#L26) to invoke the MacOxs Makefile (the logic should be very similar to the Linux and Windows sections).  
+2.  Modify the following lines of [cppbuild.sh](https://github.com/imagej/ops-experiments/blob/master/ops-experiments-cuda/native/YacuDecu/cppbuild.sh#L26) to invoke the MacOsx Makefile (the logic should be very similar to the Linux and Windows sections).  
 
-3.  In [YacuDecuRichardsonLucyWrapper](https://github.com/imagej/ops-experiments/blob/master/ops-experiments-cuda/src/main/java/net/imagej/ops/experiments/filter/deconvolve/YacuDecuRichardsonLucyWrapper.java) add a MacOsx Platform section to the properties annotaiton.  This is where the location of the Cuda Toolkit is specified.  
+3.  In [YacuDecuRichardsonLucyWrapper](https://github.com/imagej/ops-experiments/blob/master/ops-experiments-cuda/src/main/java/net/imagej/ops/experiments/filter/deconvolve/YacuDecuRichardsonLucyWrapper.java) add a MacOsx Platform section to the properties annotation.  This is where the location of the Cuda Toolkit is specified.  
 
