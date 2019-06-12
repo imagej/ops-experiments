@@ -10,8 +10,8 @@ import org.bytedeco.javacpp.annotation.Properties;
 	"cudart", "cufft" }), @Platform(value = "windows-x86_64", linkpath = {
 		"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/lib/x64/" }),
 	@Platform(value = "linux-x86_64",
-		includepath = "/usr/local/cuda-9.0/include/", linkpath = {
-			"/usr/local/cuda-9.0/lib64/" }) })
+		includepath = "/usr/local/cuda-10.0/include/", linkpath = {
+			"/usr/local/cuda-10.0/lib64/" }) })
 public class YacuDecuRichardsonLucyWrapper {
 
 	static {
