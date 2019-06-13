@@ -20,6 +20,7 @@ target/
 *.obj
 *.o
 *.so
+*.a
 
 # java cpp
 cppbuild
@@ -36,3 +37,7 @@ CTestTestfile.cmake
 bin/
 
 .ipynb_checkpoints/
+
+ops-experiments-main/native/lib/
+ops-experiments-mkl/native/lib/
+
