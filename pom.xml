@@ -105,6 +105,8 @@
 		<license.projectName>ImageJ software for multidimensional image processing and analysis.</license.projectName>
 		<nd4j.backend>nd4j-native-platform</nd4j.backend>
 		<nd4j.version>0.8.0</nd4j.version>
+		
+		<imglib2.version>5.8.0</imglib2.version>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
