@@ -40,13 +40,13 @@ public class UnaryComputerYacuDecuWrapper extends
 	RandomAccessibleInterval<FloatType> psf;
 
 	@Parameter
-	int[] border;
+	int[] overlap;
 
 	@Parameter
 	int iterations;
-	
-	@Parameter(required=false)
-	boolean nonCirculant=false;
+
+	@Parameter(required = false)
+	boolean nonCirculant = false;
 
 	BinaryFunctionOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver;
 
@@ -79,60 +79,46 @@ public class UnaryComputerYacuDecuWrapper extends
 		final long[] mine = new long[input.numDimensions()];
 		final long[] maxe = new long[input.numDimensions()];
 
-		// border size
-		int[] bordermin = new int[input.numDimensions()];
-		int[] bordermax = new int[input.numDimensions()];
+		// overlap size
+		int[] overlapmin = new int[input.numDimensions()];
+		int[] overlapmax = new int[input.numDimensions()];
 
-		// if at start or end of the image set border size to 0
+		// if at start or end of the image set overlap size to 0
 		for (int d = 0; d < input.numDimensions(); d++) {
-			bordermin[d] = border[d];
-			bordermax[d] = border[d];
+			overlapmin[d] = overlap[d];
+			overlapmax[d] = overlap[d];
 
 			if (min[d] == 0) {
-				bordermin[d] = 0;
+				overlapmin[d] = 0;
 			}
 			if (max[d] == input.dimension(d) - 1) {
-				bordermax[d] = 0;
+				overlapmax[d] = 0;
 			}
 		}
 
 		// calculated extended min and max
-		mine[0] = min[0] - bordermin[0];
-		mine[1] = min[1] - bordermin[1];
+		mine[0] = min[0] - overlapmin[0];
+		mine[1] = min[1] - overlapmin[1];
 		mine[2] = min[2];
 
-		maxe[0] = max[0] + bordermax[0];
-		maxe[1] = max[1] + bordermax[1];
+		maxe[0] = max[0] + overlapmax[0];
+		maxe[1] = max[1] + overlapmax[1];
 		maxe[2] = max[2];
 
-		 RandomAccessibleInterval<FloatType> inputcopy = ops().copy().rai(Views
-		 .interval(input, mine, maxe));
+		RandomAccessibleInterval<FloatType> inputcopy = ops().copy().rai(Views
+			.interval(input, mine, maxe));
 
 		// call deconvolver
 		final RandomAccessibleInterval<FloatType> deconv = deconvolver.calculate(
 			Views.zeroMin(inputcopy), psf);
 
+		// get the valid part of the extended deconvolution
+		RandomAccessibleInterval<FloatType> valid = Views.zeroMin(Views.interval(deconv,
+			new FinalInterval(new long[] { overlapmin[0], overlapmin[1], 0 },
+				new long[] { deconv.dimension(0) - overlapmax[0] - 1, deconv.dimension(
+					1) - overlapmax[1] - 1, output.dimension(2) - 1 })));
+
 		// copy the extended deconvolution to the original cell
-		Cursor<FloatType> c1 = Views.iterable(Views.zeroMin(output)).cursor();
-
-		RandomAccessibleInterval<FloatType> r = Views.zeroMin(Views.interval(deconv,
-			new FinalInterval(new long[] { bordermin[0], bordermin[1], 0 },
-				new long[] { deconv.dimension(0) - bordermax[0] - 1, deconv.dimension(
-					1) - bordermax[1] - 1, output.dimension(2) - 1 })));
-
-		RandomAccess<FloatType> ra = r.randomAccess();
-		
-		c1.fwd();
-
-		while (c1.hasNext()) {
-
-			ra.setPosition(c1);
-
-			// set the value of this pixel of the output image, every Type supports
-			// T.set( T type )
-			c1.get().set(ra.get());
-			c1.fwd();
-
-		}
+		ops().copy().rai(Views.zeroMin(output), valid);
 	}
 }
