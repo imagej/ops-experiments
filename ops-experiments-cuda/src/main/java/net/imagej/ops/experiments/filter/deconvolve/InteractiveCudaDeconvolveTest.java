@@ -23,6 +23,8 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 	public static <T extends RealType<T> & NativeType<T>> void main(
 		final String[] args) throws IOException
 	{
+		
+	
 
 		System.out.println("CWD: " + System.getProperty("user.dir"));
 		final String libPathProperty = System.getProperty("java.library.path");
@@ -30,6 +32,8 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 
 		ij.launch(args);
 
+		ij.log().setLevel(2);
+		
 		final int iterations = 100;
 		final int borderXY = 32;
 		final int borderZ = 50;
@@ -66,7 +70,7 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 		deconvolver.compute(imgF, deconvolved);
 		
 		endTime = System.currentTimeMillis();
-
+		
 		ij.log().info("Total execution time cuda (decon+overhead) is: " + (endTime -
 			startTime));
 

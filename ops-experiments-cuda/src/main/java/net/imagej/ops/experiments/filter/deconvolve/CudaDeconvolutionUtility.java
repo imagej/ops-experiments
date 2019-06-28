@@ -5,10 +5,12 @@ import net.imagej.ops.OpService;
 import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
+import net.imglib2.Dimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
@@ -17,7 +19,7 @@ import org.bytedeco.javacpp.FloatPointer;
 public class CudaDeconvolutionUtility {
 
 	public static FloatPointer createNormalizationFactor(final OpService ops,
-		final Interval paddedDimensions, final Interval outputDimensions,
+		final Dimensions paddedDimensions, final Dimensions outputDimensions,
 		final FloatPointer kernel, final FloatPointer X_, final FloatPointer H_)
 	{
 		// compute convolution interval
@@ -41,6 +43,7 @@ public class CudaDeconvolutionUtility {
 		for (final FloatType f : Views.iterable(temp)) {
 			f.setOne();
 		}
+		
 
 		// ui.show(Views.zeroMin(normal));
 

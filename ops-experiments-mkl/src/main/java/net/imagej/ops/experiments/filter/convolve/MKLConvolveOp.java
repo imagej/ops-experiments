@@ -2,7 +2,7 @@ package net.imagej.ops.experiments.filter.convolve;
 
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.filter.AbstractNativeFFTFilterF;
-import net.imglib2.Interval;
+import net.imglib2.Dimensions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.RealType;
@@ -25,7 +25,7 @@ public class MKLConvolveOp<I extends RealType<I>, O extends RealType<O> & Native
 	}
 
 	@Override
-	protected void runNativeFilter(Interval inputDimensions, Interval outputDimensions, FloatPointer input,
+	protected void runNativeFilter(Dimensions inputDimensions, Dimensions outputDimensions, FloatPointer input,
 			FloatPointer kernel, FloatPointer output) {
 
 		FloatPointer X_ = null;

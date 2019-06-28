@@ -3,7 +3,7 @@ package net.imagej.ops.experiments.filter.deconvolve;
 import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.filter.AbstractNativeFFTFilterF;
-import net.imglib2.Interval;
+import net.imglib2.Dimensions;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.outofbounds.OutOfBoundsMirrorFactory;
 import net.imglib2.outofbounds.OutOfBoundsMirrorFactory.Boundary;
@@ -68,7 +68,7 @@ public class YacuDecuRichardsonLucyOp<I extends RealType<I>, O extends RealType<
 	}
 
 	@Override
-	protected void runNativeFilter(final Interval inputDimensions, final Interval outputDimensions, final FloatPointer input, final FloatPointer kernel, final FloatPointer output) {
+	protected void runNativeFilter(final Dimensions inputDimensions, final Dimensions outputDimensions, final FloatPointer input, final FloatPointer kernel, final FloatPointer output) {
 		
 		final long[] fftSize = new long[] { inputDimensions.dimension(0) / 2 + 1, inputDimensions.dimension(1),
 				inputDimensions.dimension(2) };

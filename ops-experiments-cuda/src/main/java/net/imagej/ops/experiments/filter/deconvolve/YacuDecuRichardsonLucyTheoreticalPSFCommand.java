@@ -4,6 +4,7 @@ import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
 import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
+import net.imglib2.FinalDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
@@ -65,8 +66,10 @@ public class YacuDecuRichardsonLucyTheoreticalPSFCommand<T extends RealType<T> &
 		if (wavelength < 545E-9) {
 			wavelength = 545E-9f;
 		}
+		
+		FinalDimensions psfDims=new FinalDimensions(64,64,50);
 		// create the diffraction based psf
-		psf =  ops.create().kernelDiffraction(img, numericalAperture, wavelength, riSample, riImmersion, xySpacing,
+		psf =  ops.create().kernelDiffraction(psfDims, numericalAperture, wavelength, riSample, riImmersion, xySpacing,
 				zSpacing, depth, new FloatType());
 
 		// normalize PSF energy to 1

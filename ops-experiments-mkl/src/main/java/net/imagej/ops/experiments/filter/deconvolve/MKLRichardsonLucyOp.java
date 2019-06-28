@@ -4,7 +4,7 @@ package net.imagej.ops.experiments.filter.deconvolve;
 import net.imagej.ops.OpService;
 import net.imagej.ops.Ops;
 import net.imagej.ops.experiments.filter.AbstractNativeFFTFilterF;
-import net.imglib2.Interval;
+import net.imglib2.Dimensions;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.outofbounds.OutOfBoundsMirrorFactory;
@@ -73,8 +73,8 @@ public class MKLRichardsonLucyOp<I extends RealType<I>, O extends RealType<O> & 
 	}
 
 	@Override
-	protected void runNativeFilter(final Interval inputDimensions,
-		final Interval outputDimensions, final FloatPointer input,
+	protected void runNativeFilter(final Dimensions inputDimensions,
+		final Dimensions outputDimensions, final FloatPointer input,
 		final FloatPointer kernel, final FloatPointer output)
 	{
 

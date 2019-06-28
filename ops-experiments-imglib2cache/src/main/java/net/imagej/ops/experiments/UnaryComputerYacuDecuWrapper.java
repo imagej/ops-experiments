@@ -121,7 +121,7 @@ public class UnaryComputerYacuDecuWrapper extends
 					1) - bordermax[1] - 1, output.dimension(2) - 1 })));
 
 		RandomAccess<FloatType> ra = r.randomAccess();
-
+		
 		c1.fwd();
 
 		while (c1.hasNext()) {
@@ -134,13 +134,5 @@ public class UnaryComputerYacuDecuWrapper extends
 			c1.fwd();
 
 		}
-
-		// ui.show(Views.zeroMin(output));
-
-		/*
-		ops().copy().rai(Views.zeroMin(output), Views.interval(deconv,
-			new FinalInterval(new long[] { 0, 0, 0 }, new long[] { output.dimension(
-				0) - 1, output.dimension(2) - 1, output.dimension(2) - 1 })));*/
-
 	}
 }
