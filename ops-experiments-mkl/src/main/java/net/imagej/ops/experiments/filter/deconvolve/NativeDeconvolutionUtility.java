@@ -4,6 +4,7 @@ package net.imagej.ops.experiments.filter.deconvolve;
 import net.imagej.ops.OpService;
 import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.experiments.filter.convolve.MKLConvolve3DWrapper;
+import net.imglib2.Dimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
@@ -16,7 +17,7 @@ import org.bytedeco.javacpp.FloatPointer;
 public class NativeDeconvolutionUtility {
 
 	static FloatPointer createNormalizationFactor(final OpService ops,
-		final Interval inputDimensions, final Interval outputDimensions,
+		final Dimensions inputDimensions, final Dimensions outputDimensions,
 		final FloatPointer kernel, final FloatPointer X_, final FloatPointer H_)
 	{
 		// compute convolution interval
