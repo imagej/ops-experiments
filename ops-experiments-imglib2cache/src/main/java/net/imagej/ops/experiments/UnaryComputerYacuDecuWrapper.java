@@ -105,16 +105,16 @@ public class UnaryComputerYacuDecuWrapper extends
 		maxe[1] = max[1] + overlapmax[1];
 		maxe[2] = max[2];
 
-		RandomAccessibleInterval<FloatType> inputcopy = ops().copy().rai(Views
-			.interval(input, mine, maxe));
+		RandomAccessibleInterval<FloatType> inputcopy = Views.interval(input, mine,
+			maxe);
 
 		// call deconvolver
 		final RandomAccessibleInterval<FloatType> deconv = deconvolver.calculate(
 			Views.zeroMin(inputcopy), psf);
 
 		// get the valid part of the extended deconvolution
-		RandomAccessibleInterval<FloatType> valid = Views.zeroMin(Views.interval(deconv,
-			new FinalInterval(new long[] { overlapmin[0], overlapmin[1], 0 },
+		RandomAccessibleInterval<FloatType> valid = Views.zeroMin(Views.interval(
+			deconv, new FinalInterval(new long[] { overlapmin[0], overlapmin[1], 0 },
 				new long[] { deconv.dimension(0) - overlapmax[0] - 1, deconv.dimension(
 					1) - overlapmax[1] - 1, output.dimension(2) - 1 })));
 
