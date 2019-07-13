@@ -4,7 +4,7 @@ package net.imagej.ops.experiments;
 import java.io.IOException;
 
 import net.imagej.ImageJ;
-import net.imagej.ops.experiments.filter.deconvolve.UnaryComputerYacuDecuNC;
+import net.imagej.ops.experiments.filter.deconvolve.UnaryComputerYacuDecu;
 import net.imagej.ops.experiments.testImages.CElegans;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
 import net.imagej.ops.special.computer.Computers;
@@ -44,12 +44,12 @@ public class RAICudaDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
-			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecuNC.class,
+			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecu.class,
 				RandomAccessibleInterval.class, img, psf, iterations);
 		
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver2 =
-			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecuNC.class,
+			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecu.class,
 				RandomAccessibleInterval.class, img, psf, iterations);
 
 		/*RandomAccessibleInterval<FloatType> out = Views.interval(img,

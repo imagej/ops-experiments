@@ -20,7 +20,7 @@ public class CudaDeconvolutionUtility {
 
 	public static FloatPointer createNormalizationFactor(final OpService ops,
 		final Dimensions paddedDimensions, final Dimensions outputDimensions,
-		final FloatPointer kernel, final FloatPointer X_, final FloatPointer H_)
+		final FloatPointer kernel)
 	{
 		// compute convolution interval
 		final long[] start = new long[paddedDimensions.numDimensions()];
@@ -82,7 +82,7 @@ public class CudaDeconvolutionUtility {
 	{
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
-			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecuNC.class,
+			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecu.class,
 				RandomAccessibleInterval.class, img, psf, numIterations);
 
 		deconvolver.compute(img, deconvolved);

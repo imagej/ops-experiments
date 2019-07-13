@@ -215,5 +215,18 @@ public class ConvertersUtility {
 			.dimension(2) });
 
 	}
+	
+	/**
+	 * Compute mean of a FloatPoiknter
+	 * 
+	 */
+	static public float mean(final FloatPointer fp, final int length) {
+		float mean=0;
+		for (int i=0;i<length;i++) {
+			mean+=fp.get(i);
+		}
+		return mean;
+	}
+	
 
 }

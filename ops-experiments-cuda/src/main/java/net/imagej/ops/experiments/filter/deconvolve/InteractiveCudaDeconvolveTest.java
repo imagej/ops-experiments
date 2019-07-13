@@ -5,10 +5,8 @@ import java.io.IOException;
 
 import net.imagej.ImageJ;
 import net.imagej.ops.experiments.VisualizationUtility;
-import net.imagej.ops.experiments.testImages.Bars;
 import net.imagej.ops.experiments.testImages.CElegans;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
-import net.imagej.ops.experiments.testImages.HalfBead;
 import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.RandomAccessibleInterval;
@@ -23,8 +21,6 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 	public static <T extends RealType<T> & NativeType<T>> void main(
 		final String[] args) throws IOException
 	{
-		
-	
 
 		System.out.println("CWD: " + System.getProperty("user.dir"));
 		final String libPathProperty = System.getProperty("java.library.path");
@@ -33,14 +29,14 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 		ij.launch(args);
 
 		ij.log().setLevel(2);
-		
+
 		final int iterations = 100;
 		final int borderXY = 32;
 		final int borderZ = 50;
 
-		//DeconvolutionTestData testData = new Bars();
+		// DeconvolutionTestData testData = new Bars();
 		DeconvolutionTestData testData = new CElegans("../images/");
-		//DeconvolutionTestData testData = new HalfBead();
+		// DeconvolutionTestData testData = new HalfBead();
 
 		testData.LoadImages(ij);
 		RandomAccessibleInterval<FloatType> imgF = testData.getImg();
@@ -55,22 +51,23 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
-			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecuNC.class,
+			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecu.class,
 				RandomAccessibleInterval.class, imgF, psfF, iterations);
-		
+
 		startTime = System.currentTimeMillis();
 
 		/*final RandomAccessibleInterval<FloatType> deconvolved =
 			(RandomAccessibleInterval<FloatType>) ij.op().run(
 				YacuDecuRichardsonLucyOp.class, imgF, psfF, new long[] { borderXY,
 					borderXY, borderZ }, null, null, null, false, iterations, true);*/
-		
-		RandomAccessibleInterval<FloatType> deconvolved = ij.op().create().img(imgF);
+
+		RandomAccessibleInterval<FloatType> deconvolved = ij.op().create().img(
+			imgF);
 
 		deconvolver.compute(imgF, deconvolved);
-		
+
 		endTime = System.currentTimeMillis();
-		
+
 		ij.log().info("Total execution time cuda (decon+overhead) is: " + (endTime -
 			startTime));
 
@@ -78,9 +75,11 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 
 		// Render projections along X and Z axes
 		ij.ui().show("Original (YZ)", VisualizationUtility.project(ij, imgF, 0));
-		ij.ui().show("Deconvolved (YZ)", VisualizationUtility.project(ij, deconvolved, 0));
+		ij.ui().show("Deconvolved (YZ)", VisualizationUtility.project(ij,
+			deconvolved, 0));
 		ij.ui().show("Original (XY)", VisualizationUtility.project(ij, imgF, 2));
-		ij.ui().show("Deconvolved (XY)", VisualizationUtility.project(ij, deconvolved, 2));
+		ij.ui().show("Deconvolved (XY)", VisualizationUtility.project(ij,
+			deconvolved, 2));
 	}
 
 }

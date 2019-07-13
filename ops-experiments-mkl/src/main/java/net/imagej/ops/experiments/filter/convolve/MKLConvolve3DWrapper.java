@@ -29,7 +29,7 @@ public class MKLConvolve3DWrapper {
 	}
 	
 	public static native void mklConvolve3D
-	(FloatPointer x, FloatPointer h, FloatPointer y, FloatPointer X_, FloatPointer H_, int n0, int n1, int n2, boolean conj);
+	(FloatPointer x, FloatPointer h, FloatPointer y, int n0, int n1, int n2, boolean conj);
 	
 	public static void load() {
 		Loader.load();

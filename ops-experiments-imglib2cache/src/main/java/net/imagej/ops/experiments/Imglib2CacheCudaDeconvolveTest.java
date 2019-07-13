@@ -5,8 +5,8 @@ import static net.imglib2.cache.img.DiskCachedCellImgOptions.options;
 
 import java.io.IOException;
 
+import net.imagej.Dataset;
 import net.imagej.ImageJ;
-import net.imagej.ImgPlus;
 import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.RandomAccessibleInterval;
@@ -17,10 +17,8 @@ import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
-
-import sc.fiji.simplifiedio.SimplifiedIO;
+import net.imglib2.view.Views;
 
 public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
@@ -44,25 +42,29 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 		// RandomAccessibleInterval<FloatType> imgF = testData.getImg();
 		// RandomAccessibleInterval<FloatType> psfF = testData.getPSF();
 
-		// Dataset dataset = (Dataset) ij.io().open(
-		// "../../images/Slide_17015-02-1.tif");
-		// Dataset psf = (Dataset) ij.io().open(
-		// "../../images/psfsmall.tif");
-
-		ImgPlus<FloatType> imgF = SimplifiedIO.openImage(
-			"../../images/Slide_17015-02-cropped2.tif", new FloatType());
-		ImgPlus<FloatType> psfF = SimplifiedIO.openImage(
-			"../../images/psfsmall.tif", new FloatType());
-
+		Dataset dataset = (Dataset) ij.io().open(
+			"../../images/Slide_17015-02-cropped2.tif");
+		Dataset psf = (Dataset) ij.io().open("../../images/psfsmall.tif");
+		/*
+				ImgPlus<FloatType> imgF = SimplifiedIO.openImage(
+					"../../images/Slide_17015-02-cropped2.tif", new FloatType());
+				Img<FloatType> psfF = SimplifiedIO.openImage(
+					"../../images/psfsmall.tif", new FloatType()).getImg();
+		*/
 //		RandomAccessibleInterval<FloatType> imgF = SimplifiedIO.convert(img,
 //			new FloatType());
 //		RandomAccessibleInterval<FloatType> psfF = SimplifiedIO.convert(img,
 //			new FloatType());
 
-//		RandomAccessibleInterval<FloatType> imgF =
-//			(RandomAccessibleInterval<FloatType>) dataset.getImgPlus().getImg();
-//		RandomAccessibleInterval<FloatType> psfF =
-//			(RandomAccessibleInterval<FloatType>) psf.getImgPlus().getImg();
+		RandomAccessibleInterval<FloatType> img =
+			(RandomAccessibleInterval<FloatType>) dataset.getImgPlus().getImg();
+		RandomAccessibleInterval<FloatType> psf_ =
+			(RandomAccessibleInterval<FloatType>) psf.getImgPlus().getImg();
+
+		RandomAccessibleInterval<FloatType> imgF = ij.op().convert().float32(Views
+			.iterable(img));
+		RandomAccessibleInterval<FloatType> psfF = ij.op().convert().float32(Views
+			.iterable(psf_));
 
 		ImageJFunctions.show(imgF);
 		ImageJFunctions.show(psfF);
@@ -75,6 +77,12 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 		final int[] cellDimensions = new int[] { (int) Math.ceil(imgF.dimension(0) /
 			cellDivisor), (int) Math.ceil(imgF.dimension(1) / cellDivisor), (int) imgF
 				.dimension(2) };
+
+		// normalize PSF energy to 1
+		float sumPSF = ij.op().stats().sum(Views.iterable(psfF)).getRealFloat();
+		FloatType val = new FloatType();
+		val.set(sumPSF);
+		psfF = (Img<FloatType>) ij.op().math().divide(Views.iterable(psfF), val);
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =

@@ -75,23 +75,29 @@ extern "C" EXPORT void mklConvolve(float * x, float *h, float *y, float * X_,
 
 }
 
-extern "C" EXPORT void mklConvolve3D(float * x, float *h, float *y, float * X_,
-		float * H_, const int n0, const int n1, const int n2, bool conj) {
+extern "C" EXPORT void mklConvolve3D(float * x, float *h, float *y,  
+		const int n0, const int n1, const int n2, bool conj) {
+
+	
+	printf("starting mkl convolve 3D July 11th build - ImageJ Version\n");
+	
+	const MKL_INT imageSize = n0 * n1 * n2;
+	const MKL_INT fftSize = n0 * n1 * (n2 / 2 + 1);
+
+	fftwf_complex * X_ = (fftwf_complex*) malloc(sizeof(fftwf_complex)*fftSize);
+	fftwf_complex * H_ = (fftwf_complex*) malloc(sizeof(fftwf_complex)*fftSize);
 
 	fftwf_plan forward1 = fftwf_plan_dft_r2c_3d(n0, n1, n2, x,
-			(fftwf_complex*) X_, (int) FFTW_ESTIMATE);
+			X_, (int) FFTW_ESTIMATE);
 
 	fftwf_plan forward2 = fftwf_plan_dft_r2c_3d(n0, n1, n2, h,
-			(fftwf_complex*) H_, (int) FFTW_ESTIMATE);
+			H_, (int) FFTW_ESTIMATE);
 
-	fftwf_plan inverse = fftwf_plan_dft_c2r_3d(n0, n1, n2, (fftwf_complex*) X_,
+	fftwf_plan inverse = fftwf_plan_dft_c2r_3d(n0, n1, n2,  X_,
 			y, (int) FFTW_ESTIMATE);
 
 	fftwf_execute(forward1);
 	fftwf_execute(forward2);
-
-	const MKL_INT imageSize = n0 * n1 * n2;
-	const MKL_INT fftSize = n0 * n1 * (n2 / 2 + 1);
 
 	if (conj) {
 		// conjugate multiply X_, H_ for correlation
@@ -110,11 +116,14 @@ extern "C" EXPORT void mklConvolve3D(float * x, float *h, float *y, float * X_,
 	fftwf_destroy_plan(forward1);
 	fftwf_destroy_plan(forward2);
 	fftwf_destroy_plan(inverse);
+	
+	free(X_);
+	free(H_);
 
 }
 
 extern "C" EXPORT void mklRichardsonLucy3D(int iterations, float * x, float *h,
-		float*y, fftwf_complex* FFT_, fftwf_complex* H_, const int n0,
+		float*y, const int n0,
 		const int n1, const int n2, float * normal) {
 
 	if (normal == NULL) {
@@ -123,13 +132,16 @@ extern "C" EXPORT void mklRichardsonLucy3D(int iterations, float * x, float *h,
 		printf("We have recieved the normal!");
 	}
 
-	printf("starting mklrl 3D - ImageJ Version\n");
+	printf("starting mklrl 3D July 11th build - ImageJ Version\n");
 
 	const int imageSize = n0 * n1 * n2;
 	const int fftSize = n0 * n1 * (n2 / 2 + 1);
 
 	float * temp = (float*) malloc(sizeof(float) * n0 * n1 * n2);
 
+	fftwf_complex * FFT_ = (fftwf_complex*) malloc(sizeof(fftwf_complex)*fftSize);
+	fftwf_complex * H_ = (fftwf_complex*) malloc(sizeof(fftwf_complex)*fftSize);
+	
 	fftwf_plan forward1 = fftwf_plan_dft_r2c_3d(n0, n1, n2, y,
 			(fftwf_complex*) FFT_, (int) FFTW_ESTIMATE);
 
@@ -212,6 +224,8 @@ extern "C" EXPORT void mklRichardsonLucy3D(int iterations, float * x, float *h,
 	fftwf_destroy_plan(inverse);
 
 	free(temp);
+	free(FFT_);
+	free(H_);
 
 }
 
