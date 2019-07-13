@@ -5,7 +5,6 @@ import java.io.IOException;
 import net.imagej.ImageJ;
 import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.experiments.fft.MKLFFTWFloatRealForward2DWrapper;
-import net.imagej.ops.experiments.filter.deconvolve.MKLRichardsonLucyOp;
 import net.imglib2.FinalDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;

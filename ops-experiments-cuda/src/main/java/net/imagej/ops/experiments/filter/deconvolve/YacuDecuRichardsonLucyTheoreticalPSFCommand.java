@@ -80,7 +80,7 @@ public class YacuDecuRichardsonLucyTheoreticalPSFCommand<T extends RealType<T> &
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
-			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecuNC.class,
+			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecu.class,
 				RandomAccessibleInterval.class, imgF, psf, iterations);
 
 		deconvolved = ops.create().img(imgF);

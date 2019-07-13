@@ -43,6 +43,8 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		final long startTime = System.currentTimeMillis();
 
+		//Img<FloatType> out = (Img<FloatType>) ij.op().create().img(imgF);
+		
 		final Img<FloatType> deconvolved = (Img<FloatType>) ij.op().deconvolve()
 			.richardsonLucy(imgF, psfF, new long[] { pad, pad, pad }, null, null,
 				null, null, iterations, false, false);

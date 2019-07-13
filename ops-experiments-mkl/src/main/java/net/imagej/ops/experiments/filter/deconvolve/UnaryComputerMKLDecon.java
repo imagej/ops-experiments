@@ -29,7 +29,7 @@ import org.scijava.ui.UIService;
  */
 @Plugin(type = Ops.Deconvolve.RichardsonLucy.class,
 	priority = Priority.EXTREMELY_HIGH)
-public class UnaryComputerYacuDecu<I extends RealType<I>, O extends RealType<O>, K extends RealType<K>, C extends ComplexType<C>>
+public class UnaryComputerMKLDecon<I extends RealType<I>, O extends RealType<O>, K extends RealType<K>, C extends ComplexType<C>>
 	extends
 	AbstractUnaryComputerOp<RandomAccessibleInterval<I>, RandomAccessibleInterval<O>>
 	implements NativeRichardsonLucy
@@ -64,50 +64,46 @@ public class UnaryComputerYacuDecu<I extends RealType<I>, O extends RealType<O>,
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<I>, RandomAccessibleInterval<O>> deconvolver =
 			(UnaryComputerOp) Computers.unary(ops, UnaryComputerNativeRichardsonLucy.class,
-				RandomAccessibleInterval.class, input, psf, iterations, nonCirculant,
-				this);
+				RandomAccessibleInterval.class, input, psf, iterations, nonCirculant, this);
 
 		deconvolver.compute(input, output);
 
 	}
 
-	@Override
 	public void loadLibrary() {
-		// load the YacuDecu library
-		YacuDecuRichardsonLucyWrapper.load();
+		// load the MKL RL library
+		MKLRichardsonLucyWrapper.load();
+
 	}
 
-	@Override
 	public FloatPointer createNormal(Dimensions paddedDimensions,
 		Dimensions originalDimensions, FloatPointer fpPSF)
 	{
 
-		FloatPointer normalFP;
+		final FloatPointer normalFP;
 
-		if (nonCirculant) {
-			// create normalization factor needed for non-circulant deconvolution
-			// see
-			// http://bigwww.epfl.ch/deconvolution/challenge/index.html?p=documentation/theory/richardsonlucy
-			normalFP = CudaDeconvolutionUtility.createNormalizationFactor(ops,
+		// create the normalization factor needed for non-circulant mode
+		if (nonCirculant == true) {
+
+			normalFP = NativeDeconvolutionUtility.createNormalizationFactor(ops,
 				paddedDimensions, originalDimensions, fpPSF);
+
 		}
 		else {
 			normalFP = null;
 		}
 
 		return normalFP;
-
 	}
 
-	@Override
-	public void callRichardsonLucy(int numIterations, Dimensions paddedInput,
+	public void callRichardsonLucy(int iterations, Dimensions paddedInput,
 		FloatPointer fpInput, FloatPointer fpPSF, FloatPointer fpOutput,
 		FloatPointer normalFP)
 	{
-		// Call the YacuDecu wrapper
-		YacuDecuRichardsonLucyWrapper.deconv_device(numIterations, (int) paddedInput
-			.dimension(2), (int) paddedInput.dimension(1), (int) paddedInput
-				.dimension(0), fpInput, fpPSF, fpOutput, normalFP);
-
+		// Call the MKL wrapper
+		MKLRichardsonLucyWrapper.mklRichardsonLucy3D(iterations, fpInput, fpPSF,
+			fpOutput, (int) paddedInput.dimension(2), (int) paddedInput.dimension(1),
+			(int) paddedInput.dimension(0), normalFP);
 	}
+
 }

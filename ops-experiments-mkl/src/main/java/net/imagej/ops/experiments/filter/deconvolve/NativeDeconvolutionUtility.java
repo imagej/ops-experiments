@@ -18,7 +18,7 @@ public class NativeDeconvolutionUtility {
 
 	static FloatPointer createNormalizationFactor(final OpService ops,
 		final Dimensions inputDimensions, final Dimensions outputDimensions,
-		final FloatPointer kernel, final FloatPointer X_, final FloatPointer H_)
+		final FloatPointer kernel)
 	{
 		// compute convolution interval
 		final long[] start = new long[inputDimensions.numDimensions()];
@@ -48,7 +48,7 @@ public class NativeDeconvolutionUtility {
 			.zeroMin(mask));
 
 		// Call the MKL wrapper to make normal
-		MKLConvolve3DWrapper.mklConvolve3D(mask_, kernel, mask_, X_, H_,
+		MKLConvolve3DWrapper.mklConvolve3D(mask_, kernel, mask_,
 			(int) inputDimensions.dimension(2), (int) inputDimensions.dimension(1),
 			(int) inputDimensions.dimension(0), true);
 

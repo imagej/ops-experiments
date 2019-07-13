@@ -1,7 +1,7 @@
+
 package net.imagej.ops.experiments.filter.deconvolve;
 
 import net.imagej.Dataset;
-import net.imagej.ImgPlus;
 import net.imagej.ops.OpService;
 import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
@@ -16,8 +16,12 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, headless = true, menuPath = "Plugins>OpsExperiments>YacuDecu Deconvolution")
-public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>> implements Command {
+@Plugin(type = Command.class, headless = true,
+	menuPath = "Plugins>OpsExperiments>YacuDecu Deconvolution")
+public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>>
+	implements Command
+{
+
 	@Parameter
 	OpService ops;
 
@@ -38,9 +42,11 @@ public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>
 
 		// convert PSF and Image to Float Type
 		@SuppressWarnings("unchecked")
-		Img<FloatType> imgF = ops.convert().float32((Img<T>)img.getImgPlus().getImg());
+		Img<FloatType> imgF = ops.convert().float32((Img<T>) img.getImgPlus()
+			.getImg());
 		@SuppressWarnings("unchecked")
-		Img<FloatType> psfF = ops.convert().float32((Img<T>)psf.getImgPlus().getImg());
+		Img<FloatType> psfF = ops.convert().float32((Img<T>) psf.getImgPlus()
+			.getImg());
 
 		// normalize PSF energy to 1
 		float sumPSF = ops.stats().sum(psfF).getRealFloat();
@@ -50,7 +56,7 @@ public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
-			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecuNC.class,
+			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecu.class,
 				RandomAccessibleInterval.class, imgF, psfF, iterations);
 
 		deconvolved = ops.create().img(imgF);
