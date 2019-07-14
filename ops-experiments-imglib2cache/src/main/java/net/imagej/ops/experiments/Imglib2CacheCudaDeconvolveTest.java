@@ -18,6 +18,7 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
 public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T>> {
@@ -61,8 +62,14 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 		RandomAccessibleInterval<FloatType> psf_ =
 			(RandomAccessibleInterval<FloatType>) psf.getImgPlus().getImg();
 
-		RandomAccessibleInterval<FloatType> imgF = ij.op().convert().float32(Views
+		RandomAccessibleInterval<FloatType> imgF_ = ij.op().convert().float32(Views
 			.iterable(img));
+
+		// test with odd size
+		RandomAccessibleInterval<FloatType> imgF = Views.interval(imgF_, Views
+			.interval(imgF_, Intervals.createMinMax(0, 0, 0, imgF_.dimension(0) - 1,
+				imgF_.dimension(1) - 1, imgF_.dimension(2) - 1)));
+
 		RandomAccessibleInterval<FloatType> psfF = ij.op().convert().float32(Views
 			.iterable(psf_));
 
@@ -74,9 +81,9 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 		final int cellBorderZ = 0;
 		final int cellDivisor = 2;
 
-		final int[] cellDimensions = new int[] { (int) Math.ceil(imgF.dimension(0) /
-			cellDivisor), (int) Math.ceil(imgF.dimension(1) / cellDivisor), (int) imgF
-				.dimension(2) };
+		final int[] cellDimensions = new int[] { (int) Math.ceil((float) imgF
+			.dimension(0) / (float) cellDivisor), (int) (float) Math.ceil(imgF
+				.dimension(1) / (float) cellDivisor), (int) imgF.dimension(2) };
 
 		// normalize PSF energy to 1
 		float sumPSF = ij.op().stats().sum(Views.iterable(psfF)).getRealFloat();
