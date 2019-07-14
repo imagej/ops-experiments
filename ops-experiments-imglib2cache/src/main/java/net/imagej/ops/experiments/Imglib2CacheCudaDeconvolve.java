@@ -48,6 +48,9 @@ public class Imglib2CacheCudaDeconvolve<T extends RealType<T> & NativeType<T>>
 	@Parameter
 	Integer iterations = 100;
 
+	@Parameter
+	Integer numCells = 2;
+
 	@Parameter(type = ItemIO.OUTPUT)
 	Img<FloatType> deconvolved;
 
@@ -79,8 +82,9 @@ public class Imglib2CacheCudaDeconvolve<T extends RealType<T> & NativeType<T>>
 		final int cellBorderXY = (int) psfF.dimension(0);
 		final int cellBorderZ = 0;
 
-		final int[] cellDimensions = new int[] { (int) Math.ceil(imgF.dimension(0) /
-			2), (int) Math.ceil(imgF.dimension(1) / 2), (int) imgF.dimension(2) };
+		final int[] cellDimensions = new int[] { (int) Math.ceil((float) imgF
+			.dimension(0) / (float) numCells), (int) (float) Math.ceil(imgF
+				.dimension(1) / (float) numCells), (int) imgF.dimension(2) };
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
