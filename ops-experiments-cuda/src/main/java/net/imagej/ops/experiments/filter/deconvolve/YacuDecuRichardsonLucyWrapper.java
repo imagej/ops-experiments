@@ -18,14 +18,14 @@ public class YacuDecuRichardsonLucyWrapper {
 		Loader.load();
 	}
 
-	public static native void deconv_device(int iter, int n1, int n2, int n3,
+	public static native int deconv_device(int iter, int n1, int n2, int n3,
 		FloatPointer image, FloatPointer psf, FloatPointer object,
 		FloatPointer normal);
 
-	public static native void conv_device(int n1, int n2, int n3,
+	public static native int conv_device(int n1, int n2, int n3,
 		FloatPointer image, FloatPointer psf, FloatPointer out, int correlate);
-	
-	public static native void setDevice(int device); 
+
+	public static native void setDevice(int device);
 
 	public static void load() {
 		Loader.load();

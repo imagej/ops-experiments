@@ -63,9 +63,9 @@ public class UnaryComputerYacuDecu<I extends RealType<I>, O extends RealType<O>,
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<I>, RandomAccessibleInterval<O>> deconvolver =
-			(UnaryComputerOp) Computers.unary(ops, UnaryComputerNativeRichardsonLucy.class,
-				RandomAccessibleInterval.class, input, psf, iterations, nonCirculant,
-				this);
+			(UnaryComputerOp) Computers.unary(ops,
+				UnaryComputerNativeRichardsonLucy.class, RandomAccessibleInterval.class,
+				input, psf, iterations, nonCirculant, this);
 
 		deconvolver.compute(input, output);
 
@@ -100,14 +100,16 @@ public class UnaryComputerYacuDecu<I extends RealType<I>, O extends RealType<O>,
 	}
 
 	@Override
-	public void callRichardsonLucy(int numIterations, Dimensions paddedInput,
+	public int callRichardsonLucy(int numIterations, Dimensions paddedInput,
 		FloatPointer fpInput, FloatPointer fpPSF, FloatPointer fpOutput,
 		FloatPointer normalFP)
 	{
 		// Call the YacuDecu wrapper
-		YacuDecuRichardsonLucyWrapper.deconv_device(numIterations, (int) paddedInput
-			.dimension(2), (int) paddedInput.dimension(1), (int) paddedInput
-				.dimension(0), fpInput, fpPSF, fpOutput, normalFP);
+		int error = YacuDecuRichardsonLucyWrapper.deconv_device(numIterations,
+			(int) paddedInput.dimension(2), (int) paddedInput.dimension(1),
+			(int) paddedInput.dimension(0), fpInput, fpPSF, fpOutput, normalFP);
+
+		return error;
 
 	}
 }

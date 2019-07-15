@@ -16,6 +16,8 @@ import net.imglib2.view.Views;
 
 import org.bytedeco.javacpp.FloatPointer;
 
+import scala.tools.jline_embedded.internal.Log;
+
 public class CudaDeconvolutionUtility {
 
 	public static FloatPointer createNormalizationFactor(final OpService ops,
@@ -51,9 +53,13 @@ public class CudaDeconvolutionUtility {
 			.zeroMin(normal));
 
 		// Call the cuda wrapper to make normal
-		YacuDecuRichardsonLucyWrapper.conv_device((int) paddedDimensions.dimension(
+		int error = YacuDecuRichardsonLucyWrapper.conv_device((int) paddedDimensions.dimension(
 			2), (int) paddedDimensions.dimension(1), (int) paddedDimensions.dimension(
 				0), normalFP, kernel, normalFP, 1);
+		
+		if (error!=0) {
+			Log.error("YacuDecu returned error code %d "+error);
+		}
 
 		// remove small values from the mask
 		for (int i = 0; i < normal.size(); i++) {

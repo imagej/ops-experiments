@@ -162,8 +162,12 @@ public class UnaryComputerNativeRichardsonLucy<I extends RealType<I>, O extends 
 		final long startTime = System.currentTimeMillis();
 
 		// Call the decon
-		rl.callRichardsonLucy(iterations, paddedInput, fpInput, fpPSF, fpOutput, normalFP);
+		int error = rl.callRichardsonLucy(iterations, paddedInput, fpInput, fpPSF, fpOutput, normalFP);
 
+		if (error>0) {
+			log.error("YacuDecu returned error code "+error);
+		}
+		
 		// copy output to array
 		final float[] arrayOutput = new float[paddedSize];
 		fpOutput.get(arrayOutput);

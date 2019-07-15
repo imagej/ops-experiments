@@ -41,7 +41,7 @@ public interface NativeRichardsonLucy {
 	 * @param fpOutput
 	 * @param normalFP
 	 */
-	void callRichardsonLucy(int iterations, Dimensions paddedInput, FloatPointer fpInput,
+	int callRichardsonLucy(int iterations, Dimensions paddedInput, FloatPointer fpInput,
 		FloatPointer fpPSF, FloatPointer fpOutput, FloatPointer normalFP);
 
 }

@@ -70,12 +70,14 @@ public class UnaryComputerMKLDecon<I extends RealType<I>, O extends RealType<O>,
 
 	}
 
+	@Override
 	public void loadLibrary() {
 		// load the MKL RL library
 		MKLRichardsonLucyWrapper.load();
 
 	}
 
+	@Override
 	public FloatPointer createNormal(Dimensions paddedDimensions,
 		Dimensions originalDimensions, FloatPointer fpPSF)
 	{
@@ -96,14 +98,18 @@ public class UnaryComputerMKLDecon<I extends RealType<I>, O extends RealType<O>,
 		return normalFP;
 	}
 
-	public void callRichardsonLucy(int iterations, Dimensions paddedInput,
+	@Override
+	public int callRichardsonLucy(int numIterations, Dimensions paddedInput,
 		FloatPointer fpInput, FloatPointer fpPSF, FloatPointer fpOutput,
 		FloatPointer normalFP)
 	{
 		// Call the MKL wrapper
-		MKLRichardsonLucyWrapper.mklRichardsonLucy3D(iterations, fpInput, fpPSF,
+		MKLRichardsonLucyWrapper.mklRichardsonLucy3D(numIterations, fpInput, fpPSF,
 			fpOutput, (int) paddedInput.dimension(2), (int) paddedInput.dimension(1),
 			(int) paddedInput.dimension(0), normalFP);
+	
+		// error handling not supported yet for MKL version
+		return 0;
 	}
 
 }
