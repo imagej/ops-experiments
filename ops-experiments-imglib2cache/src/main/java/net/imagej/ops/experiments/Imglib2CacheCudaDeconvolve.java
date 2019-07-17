@@ -20,6 +20,7 @@ import net.imglib2.img.cell.Cell;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
 
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
@@ -85,6 +86,12 @@ public class Imglib2CacheCudaDeconvolve<T extends RealType<T> & NativeType<T>>
 		final int[] cellDimensions = new int[] { (int) Math.ceil((float) imgF
 			.dimension(0) / (float) numCells), (int) (float) Math.ceil(imgF
 				.dimension(1) / (float) numCells), (int) imgF.dimension(2) };
+		
+		// normalize PSF energy to 1
+		float sumPSF = ij.op().stats().sum(Views.iterable(psfF)).getRealFloat();
+		FloatType val = new FloatType();
+		val.set(sumPSF);
+		psfF = (Img<FloatType>) ij.op().math().divide(Views.iterable(psfF), val);
 
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
