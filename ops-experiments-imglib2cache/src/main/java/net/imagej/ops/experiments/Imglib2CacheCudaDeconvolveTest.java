@@ -23,7 +23,7 @@ import net.imglib2.view.Views;
 
 public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
-	final static ImageJ ij = new ImageJ();
+	final static ImageJ ij  = new ImageJ();
 
 	/**
 	 * This examples demonstrates calling GPU deconvolution cell by cell on an
