@@ -10,19 +10,16 @@ import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
-
 import org.bytedeco.javacpp.FloatPointer;
-
-import scala.tools.jline_embedded.internal.Log;
+import org.scijava.log.LogService;
 
 public class CudaDeconvolutionUtility {
 
 	public static FloatPointer createNormalizationFactor(final OpService ops,
-		final Dimensions paddedDimensions, final Dimensions outputDimensions,
-		final FloatPointer kernel)
+		final LogService log, final Dimensions paddedDimensions,
+		final Dimensions outputDimensions, final FloatPointer kernel)
 	{
 		// compute convolution interval
 		final long[] start = new long[paddedDimensions.numDimensions()];
@@ -45,7 +42,6 @@ public class CudaDeconvolutionUtility {
 		for (final FloatType f : Views.iterable(temp)) {
 			f.setOne();
 		}
-		
 
 		// ui.show(Views.zeroMin(normal));
 
@@ -53,12 +49,12 @@ public class CudaDeconvolutionUtility {
 			.zeroMin(normal));
 
 		// Call the cuda wrapper to make normal
-		int error = YacuDecuRichardsonLucyWrapper.conv_device((int) paddedDimensions.dimension(
-			2), (int) paddedDimensions.dimension(1), (int) paddedDimensions.dimension(
-				0), normalFP, kernel, normalFP, 1);
-		
-		if (error!=0) {
-			Log.error("YacuDecu returned error code %d "+error);
+		int error = YacuDecuRichardsonLucyWrapper.conv_device((int) paddedDimensions
+			.dimension(2), (int) paddedDimensions.dimension(1), (int) paddedDimensions
+				.dimension(0), normalFP, kernel, normalFP, 1);
+
+		if (error != 0) {
+			log.error("YacuDecu returned error code %d " + error);
 		}
 
 		// remove small values from the mask

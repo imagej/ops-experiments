@@ -88,7 +88,7 @@ public class UnaryComputerYacuDecu<I extends RealType<I>, O extends RealType<O>,
 			// create normalization factor needed for non-circulant deconvolution
 			// see
 			// http://bigwww.epfl.ch/deconvolution/challenge/index.html?p=documentation/theory/richardsonlucy
-			normalFP = CudaDeconvolutionUtility.createNormalizationFactor(ops,
+			normalFP = CudaDeconvolutionUtility.createNormalizationFactor(ops, log,
 				paddedDimensions, originalDimensions, fpPSF);
 		}
 		else {
