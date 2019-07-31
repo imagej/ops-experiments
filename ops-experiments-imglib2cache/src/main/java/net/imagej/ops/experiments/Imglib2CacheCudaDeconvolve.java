@@ -3,6 +3,9 @@ package net.imagej.ops.experiments;
 
 import static net.imglib2.cache.img.DiskCachedCellImgOptions.options;
 
+import io.scif.img.ImgSaver;
+
+import java.io.File;
 import java.io.IOException;
 
 import net.imagej.Dataset;
@@ -52,6 +55,9 @@ public class Imglib2CacheCudaDeconvolve<T extends RealType<T> & NativeType<T>>
 	@Parameter
 	Integer numCells = 2;
 
+	@Parameter(required = false, style = "directory")
+	File outputDir = null;
+
 	@Parameter(type = ItemIO.OUTPUT)
 	Img<FloatType> deconvolved;
 
@@ -72,7 +78,12 @@ public class Imglib2CacheCudaDeconvolve<T extends RealType<T> & NativeType<T>>
 	public void run() {
 
 		log.error("starting log");
-
+	
+		if (outputDir != null) {
+			String name = outputDir.getAbsolutePath() + "/" + img.getName();
+			log.info("processing " + name);
+		}
+	
 		Img<FloatType> imgF = ops.convert().float32((Img<T>) img.getImgPlus()
 			.getImg());
 
@@ -121,16 +132,13 @@ public class Imglib2CacheCudaDeconvolve<T extends RealType<T> & NativeType<T>>
 		test.getCells().forEach(Cell::getData);
 
 		deconvolved = test;
-		/*
-		RandomAccess<FloatType> ra = deconvolved.randomAccess();
 		
-		// trigger
-		for (int x=0;x<imgF.dimension(0);x+=cellDimensions[0]) {
-			for (int y=0;y<imgF.dimension(1);y+=cellDimensions[1]) {
-				ra.setPosition(new int[] {x,y,0});
-				ra.get().getRealDouble();
-			}
-		}*/
+		if (outputDir != null) {
+			String outName = outputDir.getAbsolutePath() + "/deconvolved_" + img
+				.getName();
+			log.info("saving to" + outName);
+			new ImgSaver().saveImg(outName, deconvolved);
+		}
 
 	}
 

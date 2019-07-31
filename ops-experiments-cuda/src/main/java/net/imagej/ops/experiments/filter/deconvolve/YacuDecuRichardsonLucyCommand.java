@@ -1,6 +1,11 @@
 
 package net.imagej.ops.experiments.filter.deconvolve;
 
+import io.scif.img.ImgSaver;
+import io.scif.services.DatasetIOService;
+
+import java.io.File;
+
 import net.imagej.Dataset;
 import net.imagej.ops.OpService;
 import net.imagej.ops.special.computer.Computers;
@@ -13,6 +18,7 @@ import net.imglib2.type.numeric.real.FloatType;
 
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -23,7 +29,13 @@ public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>
 {
 
 	@Parameter
+	LogService log;
+
+	@Parameter
 	OpService ops;
+
+	@Parameter
+	DatasetIOService dio;
 
 	@Parameter
 	Dataset img;
@@ -34,11 +46,18 @@ public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>
 	@Parameter
 	Integer iterations = 100;
 
+	@Parameter(required = false, style = "directory")
+	File outputDir = null;
+
 	@Parameter(type = ItemIO.OUTPUT)
 	Img<FloatType> deconvolved;
 
 	@Override
 	public void run() {
+
+		// log.setLevel(2);
+		log.error("show log");
+		// System.setProperty("scijava.log.level", "debug");
 
 		// convert PSF and Image to Float Type
 		@SuppressWarnings("unchecked")
@@ -59,10 +78,17 @@ public class YacuDecuRichardsonLucyCommand<T extends RealType<T> & NativeType<T>
 			(UnaryComputerOp) Computers.unary(ops, UnaryComputerYacuDecu.class,
 				RandomAccessibleInterval.class, imgF, psfF, iterations);
 
+		log.info("Processing " + img.getImgPlus().getName());
+
 		deconvolved = ops.create().img(imgF);
 
 		deconvolver.compute(imgF, deconvolved);
 
+		if (outputDir != null) {
+			String outName = outputDir.getAbsolutePath() + "/deconvolved_" + img
+				.getName();
+			log.info("saving to" + outName);
+			new ImgSaver().saveImg(outName, deconvolved);
+		}
 	}
-
 }
