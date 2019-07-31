@@ -64,10 +64,12 @@ public class UnaryComputerYacuDecuWrapper extends
 		final RandomAccessibleInterval<FloatType> output)
 	{
 
-		log.info("min: " + output.min(0) + " " + output.min(1) + " " + output.min(
+		log.info("Running deconvolution on cell");
+		log.info("cell min: " + output.min(0) + " " + output.min(1) + " " + output.min(
 			2));
-		log.info("max: " + output.max(0) + " " + output.max(1) + " " + output.max(
+		log.info("cell max: " + output.max(0) + " " + output.max(1) + " " + output.max(
 			2));
+		log.info("");
 
 		// min and max of the output cell we are computing values for
 		final long[] min = new long[] { output.min(0), output.min(1), output.min(
