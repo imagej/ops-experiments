@@ -44,8 +44,8 @@ public class Imglib2CacheCudaDeconvolveTest<T extends RealType<T> & NativeType<T
 		// RandomAccessibleInterval<FloatType> psfF = testData.getPSF();
 
 		Dataset dataset = (Dataset) ij.io().open(
-			"../../images/Slide_17015-02-cropped2.tif");
-		Dataset psf = (Dataset) ij.io().open("../../images/psfsmall.tif");
+			"../../../images/Slide_17015-02-cropped2.tif");
+		Dataset psf = (Dataset) ij.io().open("../../../images/psfsmall.tif");
 		/*
 				ImgPlus<FloatType> imgF = SimplifiedIO.openImage(
 					"../../images/Slide_17015-02-cropped2.tif", new FloatType());
