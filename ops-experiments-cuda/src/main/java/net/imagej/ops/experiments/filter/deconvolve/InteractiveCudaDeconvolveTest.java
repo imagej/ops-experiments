@@ -3,13 +3,15 @@ package net.imagej.ops.experiments.filter.deconvolve;
 
 import java.io.IOException;
 
+import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imagej.ops.experiments.VisualizationUtility;
-import net.imagej.ops.experiments.testImages.CElegans;
+import net.imagej.ops.experiments.testImages.Bars;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
 import net.imagej.ops.special.computer.Computers;
 import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -34,14 +36,14 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 		final int borderXY = 32;
 		final int borderZ = 50;
 
-		// DeconvolutionTestData testData = new Bars();
-		DeconvolutionTestData testData = new CElegans("../images/");
-		// DeconvolutionTestData testData = new HalfBead();
+		DeconvolutionTestData testData = new Bars("../images/");
+		// DeconvolutionTestData testData = new CElegans("../images/");
+		// DeconvolutionTestData testData = new Bead("../images/");
 
 		testData.LoadImages(ij);
 		RandomAccessibleInterval<FloatType> imgF = testData.getImg();
 		RandomAccessibleInterval<FloatType> psfF = testData.getPSF();
-
+		
 		ij.ui().show("img ", imgF);
 		ij.ui().show("psf ", psfF);
 
@@ -56,11 +58,6 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 
 		startTime = System.currentTimeMillis();
 
-		/*final RandomAccessibleInterval<FloatType> deconvolved =
-			(RandomAccessibleInterval<FloatType>) ij.op().run(
-				YacuDecuRichardsonLucyOp.class, imgF, psfF, new long[] { borderXY,
-					borderXY, borderZ }, null, null, null, false, iterations, true);*/
-
 		RandomAccessibleInterval<FloatType> deconvolved = ij.op().create().img(
 			imgF);
 
@@ -68,8 +65,11 @@ public class InteractiveCudaDeconvolveTest<T extends RealType<T> & NativeType<T>
 
 		endTime = System.currentTimeMillis();
 
-		ij.log().info("Total execution time cuda (decon+overhead) is: " + (endTime -
-			startTime));
+//		ij.log().info("Total execution time cuda (decon+overhead) is: " + (endTime -
+//			startTime));
+
+		System.out.println("Total execution time cuda (decon+overhead) is: " +
+			(endTime - startTime));
 
 		ij.ui().show("cuda op deconvolved", deconvolved);
 
