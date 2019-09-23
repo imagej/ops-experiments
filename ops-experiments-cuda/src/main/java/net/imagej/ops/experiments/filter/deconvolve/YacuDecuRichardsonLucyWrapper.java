@@ -26,6 +26,18 @@ public class YacuDecuRichardsonLucyWrapper {
 		FloatPointer image, FloatPointer psf, FloatPointer out, int correlate);
 
 	public static native void setDevice(int device);
+	
+	public static native int getDeviceCount();
+
+	public static native long getWorkSize(int N1, int N2, int N3);
+	
+	public static native long getTotalMem();
+	
+	public static native long getFreeMem();
+
+	public static native void removeSmallValues(FloatPointer in, long size);
+	
+
 
 	public static void load() {
 		Loader.load();

@@ -32,12 +32,11 @@ import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
 /**
- * This class implements the workflow to call a native (ie c, or c++ implementation using MKL, Cuda, OpenCL etc.)
- * version of Richardson Lucy.  
- * 
- * Caller must Set 'NativeRichardsonLucy' Parameter to desired implementation.  
- *
- * Documentation for the (Optionally) Non-circulant version of Richardson Lucy can be found here
+ * This class implements the workflow to call a native (ie c, or c++
+ * implementation using MKL, Cuda, OpenCL etc.) version of Richardson Lucy.
+ * Caller must Set 'NativeRichardsonLucy' Parameter to desired implementation.
+ * Documentation for the (Optionally) Non-circulant version of Richardson Lucy
+ * can be found here
  * http://bigwww.epfl.ch/deconvolution/challenge/index.html?p=documentation/theory/richardsonlucy
  * 
  * @author bnorthan
@@ -68,6 +67,9 @@ public class UnaryComputerNativeRichardsonLucy<I extends RealType<I>, O extends 
 	boolean nonCirculant = true;
 
 	@Parameter(required = false)
+	long[] extendedSize = null;
+
+	@Parameter(required = false)
 	NativeRichardsonLucy rl;
 
 	OutOfBoundsFactory<I, RandomAccessibleInterval<I>> obfInput;
@@ -78,11 +80,13 @@ public class UnaryComputerNativeRichardsonLucy<I extends RealType<I>, O extends 
 		final RandomAccessibleInterval<O> output)
 	{
 
-		// compute extended size of the image based on PSF dimensions
-		final long[] extendedSize = new long[output.numDimensions()];
+		if (extendedSize == null) {
+			// compute extended size of the image based on PSF dimensions
+			extendedSize = new long[output.numDimensions()];
 
-		for (int d = 0; d < output.numDimensions(); d++) {
-			extendedSize[d] = output.dimension(d) + psf.dimension(d);
+			for (int d = 0; d < output.numDimensions(); d++) {
+				extendedSize[d] = output.dimension(d) + psf.dimension(d);
+			}
 		}
 
 		// if non circulant extend image with zeros
@@ -121,25 +125,42 @@ public class UnaryComputerNativeRichardsonLucy<I extends RealType<I>, O extends 
 		RandomAccessibleInterval<K> paddedPSF, Dimensions originalDimensions)
 	{
 
+		
+		long start, finish;
+		
+		start = System.currentTimeMillis();
+		
 		rl.loadLibrary();
+		
+		finish = System.currentTimeMillis();
+		
+		System.out.println("Load Library Time: "+(finish-start));
 
+		start = System.currentTimeMillis();
 		FloatPointer fpInput = null;
 		FloatPointer fpPSF = null;
 		FloatPointer fpOutput = null;
 
 		// convert image to FloatPointer
-		fpInput = ConvertersUtility.ii3DToFloatPointer(Views.iterable((Views
-			.zeroMin(paddedInput))));
+		fpInput = ConvertersUtility.ii3DToFloatPointer(paddedInput);
 
 		// convert PSF to FloatPointer
-		fpPSF = ConvertersUtility.ii3DToFloatPointer(Views.zeroMin(paddedPSF));
+		fpPSF = ConvertersUtility.ii3DToFloatPointer(paddedPSF);
+		finish = System.currentTimeMillis();
+		
+		System.out.println("Conversion Time: "+(finish-start));
+
+		start = System.currentTimeMillis();
+
 
 		int paddedSize = (int) (paddedInput.dimension(0) * paddedInput.dimension(
 			1) * paddedInput.dimension(2));
 
 		if (nonCirculant) {
+			float temp[] = new float[paddedSize];
+			
 			// create output
-			fpOutput = new FloatPointer(paddedSize);
+			//fpOutput = new FloatPointer(paddedSize);
 
 			// compute sum of image and divide by padded size
 			float meanOverPaddedSize = ops.stats().sum(Views.iterable(paddedInput))
@@ -147,27 +168,48 @@ public class UnaryComputerNativeRichardsonLucy<I extends RealType<I>, O extends 
 
 			// set first guess to flat sheet
 			for (int i = 0; i < paddedSize; i++) {
-				fpOutput.put(i, meanOverPaddedSize);
+				temp[i]=meanOverPaddedSize;
+				//fpOutput.put(i, meanOverPaddedSize);
 			}
+			
+			fpOutput=new FloatPointer(temp);
 		}
 		else {
-			fpOutput = ConvertersUtility.ii3DToFloatPointer(Views.iterable((Views
-				.zeroMin(paddedInput))));
-		}
+			fpOutput = ConvertersUtility.ii3DToFloatPointer(paddedInput);
+		} 
+		
+		finish = System.currentTimeMillis();
+		
+		System.out.println("First Guess time: "+(finish-start));
+
+		start = System.currentTimeMillis();
 
 		// create normal
 		FloatPointer normalFP = rl.createNormal(paddedInput, originalDimensions,
 			fpPSF);
 
-		final long startTime = System.currentTimeMillis();
+		finish = System.currentTimeMillis();
+		
+		System.out.println("Create Normal Time:  "+(finish-start));
+
+		start = System.currentTimeMillis();
+
 
 		// Call the decon
-		int error = rl.callRichardsonLucy(iterations, paddedInput, fpInput, fpPSF, fpOutput, normalFP);
+		int error = rl.callRichardsonLucy(iterations, paddedInput, fpInput, fpPSF,
+			fpOutput, normalFP);
 
-		if (error>0) {
-			log.error("YacuDecu returned error code "+error);
-		}
 		
+		finish = System.currentTimeMillis();
+		
+		System.out.println("Decon time:  "+(finish-start));
+
+		start = System.currentTimeMillis();
+		
+		if (error > 0) {
+			log.error("YacuDecu returned error code " + error);
+		}
+
 		// copy output to array
 		final float[] arrayOutput = new float[paddedSize];
 		fpOutput.get(arrayOutput);
@@ -175,7 +217,14 @@ public class UnaryComputerNativeRichardsonLucy<I extends RealType<I>, O extends 
 		final Img<FloatType> deconv = ArrayImgs.floats(arrayOutput, new long[] {
 			paddedInput.dimension(0), paddedInput.dimension(1), paddedInput.dimension(
 				2) });
+	
+		finish = System.currentTimeMillis();
+		
+		System.out.println("Copy back time:  "+(finish-start));
 
+		System.out.println();
+		
 		return deconv;
 	}
 }
+

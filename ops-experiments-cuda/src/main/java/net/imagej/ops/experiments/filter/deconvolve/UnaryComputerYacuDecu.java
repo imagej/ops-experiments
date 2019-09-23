@@ -53,6 +53,9 @@ public class UnaryComputerYacuDecu<I extends RealType<I>, O extends RealType<O>,
 	@Parameter(required = false)
 	boolean nonCirculant = true;
 
+	@Parameter(required = false)
+	long[] extendedSize = null;
+
 	OutOfBoundsFactory<I, RandomAccessibleInterval<I>> obfInput;
 
 	@SuppressWarnings("unchecked")
@@ -65,7 +68,7 @@ public class UnaryComputerYacuDecu<I extends RealType<I>, O extends RealType<O>,
 		final UnaryComputerOp<RandomAccessibleInterval<I>, RandomAccessibleInterval<O>> deconvolver =
 			(UnaryComputerOp) Computers.unary(ops,
 				UnaryComputerNativeRichardsonLucy.class, RandomAccessibleInterval.class,
-				input, psf, iterations, nonCirculant, this);
+				input, psf, iterations, nonCirculant, extendedSize, this);
 
 		deconvolver.compute(input, output);
 

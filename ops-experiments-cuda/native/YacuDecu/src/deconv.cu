@@ -105,7 +105,7 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
     cudaError_t err;
     cufftHandle planR2C, planC2R;
 
-	//std::cout<<"Starting Cuda deconvolution\n";
+	std::cout<<"Starting Cuda deconvolution N1="<<N1<<" N2="<<N2<<" N3="<<N3<<"\n";
 
     float *image = 0; // convolved image (constant)
     float *object = 0; // estimated object
@@ -133,13 +133,10 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
     mSpatial = spatialBlocks.x * spatialBlocks.y * spatialBlocks.z * spatialThreadsPerBlock.x * sizeof(float);
     mFreq = freqBlocks.x * freqBlocks.y * freqBlocks.z * freqThreadsPerBlock.x * sizeof(cuComplex);
 
-    printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
-    printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
+    //printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
+    //printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
 	fflush(stdin);
 
-	//std::cout<<"N: "<<nSpatial<<" M: "<<mSpatial<<"\n"<<std::flush;
-	//std::cout<<"Blocks: "<<spatialBlocks.x<<" x "<<spatialBlocks.y<<" x "<<spatialBlocks.z<<", Threads: "<<spatialThreadsPerBlock.x<<" x "<<spatialThreadsPerBlock.y<<" x "<<spatialThreadsPerBlock.z<<"\n";
-    
 	cudaDeviceReset();
     cudaProfilerStart();
 
@@ -149,19 +146,19 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 	size_t freeMem, totalMem;
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc image)\n";
 
     err = cudaMalloc(&object, mSpatial);
     if(err) goto cudaErr;
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc object)\n";
 
 	err = cudaMalloc(&psf, mSpatial);
     if(err) goto cudaErr;
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc PSF)\n";
 
 	//err = cudaMalloc(&temp, mSpatial);
     //if(err) goto cudaErr;
@@ -171,27 +168,24 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
 		if (err) goto cudaErr;
 
 		cudaMemGetInfo(&freeMem, &totalMem);
-		//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+		std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc normal)\n";
 
 	}
 	else {
 		normal = NULL;
 	}
 
-	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
-
     err = cudaMalloc(&otf, mFreq);
     if(err) goto cudaErr;
     
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc OTF)\n";
 
 	err = cudaMalloc(&buf, mFreq); // mFreq > mSpatial
     if(err) goto cudaErr;
 	
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc buf)\n";
 
     err = cudaMemset(image, 0, mSpatial);
     if(err) goto cudaErr;
@@ -224,7 +218,7 @@ int deconv_device(unsigned int iter, size_t N1, size_t N2, size_t N3,
     	
 	if(r) goto cufftError;
 
-    printf("Plans created.\n");
+    //printf("Plans created.\n");
 
     r = cufftExecR2C(planR2C, psf, otf);
     if(r) goto cufftError;
@@ -339,12 +333,12 @@ extern "C" int deconv_host(unsigned int iter, size_t N1, size_t N2, size_t N3,
     mSpatial = spatialBlocks.x * spatialBlocks.y * spatialBlocks.z * spatialThreadsPerBlock.x * sizeof(float);
     mFreq = freqBlocks.x * freqBlocks.y * freqBlocks.z * freqThreadsPerBlock.x * sizeof(cuComplex);
 
-    printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
-    printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
+    //printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
+    //printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
 
     cudaDeviceReset();
     err = cudaSetDeviceFlags(cudaDeviceMapHost);
-    printf("Set Device Flags: %d\n", err);
+    //printf("Set Device Flags: %d\n", err);
 
     cudaProfilerStart();
 
@@ -353,7 +347,7 @@ extern "C" int deconv_host(unsigned int iter, size_t N1, size_t N2, size_t N3,
     err = cudaHostAlloc(&h_buf, mFreq, cudaHostAllocMapped | cudaHostAllocWriteCombined);
     if(err) goto cudaErr;
 
-    printf("Host memory allocated.\n");
+    //printf("Host memory allocated.\n");
 
     if(mSpatial > nSpatial*sizeof(float)) {
         err = cudaHostAlloc(&h_image_pad, mSpatial, cudaHostAllocMapped | cudaHostAllocWriteCombined);
@@ -383,29 +377,29 @@ extern "C" int deconv_host(unsigned int iter, size_t N1, size_t N2, size_t N3,
     err = cudaHostGetDevicePointer(&buf, h_buf, 0);
     if(err) goto cudaErr;
 
-    printf("Host pointers registered.\n");
+    //printf("Host pointers registered.\n");
 
     err = cudaMemcpy(otf, h_psf, nSpatial*sizeof(float), cudaMemcpyHostToDevice);
     if(err) goto cudaErr;
-    printf("PSF transferred.\n");
+    //printf("PSF transferred.\n");
 
     r = createPlans(N1, N2, N3, &planR2C, &planC2R, &workArea, &workSize);
     if(r) goto cufftError;
 
-    printf("Plans created.\n");
+    //printf("Plans created.\n");
 
     r = cufftExecR2C(planR2C, (float*)otf, otf);
     if(r) goto cufftError;
 
     for(unsigned int i=0; i < iter; i++) {
-        printf("Iteration %d\n", i);
+        //printf("Iteration %d\n", i);
         r = cufftExecR2C(planR2C, object, (cufftComplex*)buf);
         if(r) goto cufftError;
         ComplexMul<<<freqBlocks, freqThreadsPerBlock>>>((cuComplex*)buf, otf, (cuComplex*)buf);
         r = cufftExecC2R(planC2R, (cufftComplex*)buf, (float*)buf);
         if(r) goto cufftError;
 
-        printf("a: m = %f\n", devFloatMean((float*)buf, nSpatial));
+        //printf("a: m = %f\n", devFloatMean((float*)buf, nSpatial));
         FloatDiv<<<spatialBlocks, spatialThreadsPerBlock>>>(image, (float*)buf, (float*)buf);
         r = cufftExecR2C(planR2C, (float*)buf, (cufftComplex*)buf);
         if(r) goto cufftError;
@@ -415,7 +409,7 @@ extern "C" int deconv_host(unsigned int iter, size_t N1, size_t N2, size_t N3,
         FloatMul<<<spatialBlocks, spatialThreadsPerBlock>>>((float*)buf, object, object);
     }
 
-    printf("object: m = %f\n", devFloatMean((float*)object, nSpatial));
+    //printf("object: m = %f\n", devFloatMean((float*)object, nSpatial));
 
     err = cudaMemcpy(h_object, object, nSpatial*sizeof(float), cudaMemcpyDeviceToHost);
     if(err) goto cudaErr;
@@ -495,8 +489,8 @@ int deconv_stream(unsigned int iter, size_t N1, size_t N2, size_t N3,
     mSpatial = spatialBlocks.x * spatialBlocks.y * spatialBlocks.z * spatialThreadsPerBlock.x * sizeof(float);
     mFreq = freqBlocks.x * freqBlocks.y * freqBlocks.z * freqThreadsPerBlock.x * sizeof(cuComplex);
 
-    printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
-    printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
+    //printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
+    //printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
 
     cudaDeviceReset();
     cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync);
@@ -519,7 +513,7 @@ int deconv_stream(unsigned int iter, size_t N1, size_t N2, size_t N3,
 
     h_otf = (cuComplex*)malloc(nFreq*sizeof(cuComplex));
 
-    printf("Memory allocated.\n");
+    //printf("Memory allocated.\n");
 
     err = cudaHostRegister(h_image, nSpatial*sizeof(float), 0);
     if(err) goto cudaErr;
@@ -536,7 +530,7 @@ int deconv_stream(unsigned int iter, size_t N1, size_t N2, size_t N3,
     r = cufftSetStream(planC2R, fftStream);
     if(r) goto cufftError;
 
-    printf("Plans created.\n");
+    //printf("Plans created.\n");
 
     err = cudaMemcpyAsync(buf, h_psf, nSpatial*sizeof(float), cudaMemcpyHostToDevice, fftStream);
     if(err) goto cudaErr;
@@ -547,13 +541,13 @@ int deconv_stream(unsigned int iter, size_t N1, size_t N2, size_t N3,
     err = cudaStreamSynchronize(fftStream);
     if(err) goto cudaErr;
 
-    printf("OTF generated.\n");
+    //printf("OTF generated.\n");
 
     err = cudaMemcpyAsync(result, h_object, nSpatial*sizeof(float), cudaMemcpyHostToDevice, fftStream);
     if(err) goto cudaErr;
 
     for(unsigned int i=0; i < iter; i++) {
-        printf("Iteration %d\n", i);
+        //printf("Iteration %d\n", i);
         err = cudaMemcpyAsync(buf, h_otf, nFreq*sizeof(cuComplex), cudaMemcpyHostToDevice, memStream);
         if(err) goto cudaErr;
         r = cufftExecR2C(planR2C, (float*)result, (cuComplex*)result);
@@ -668,7 +662,7 @@ cufftResult createPlans(size_t N1, size_t N2, size_t N3, cufftHandle *planR2C, c
     if(tmp > *workSize)
         *workSize = tmp;
 
-	//std::cout << "Malloc work area \n";
+	std::cout << "Malloc work area of "<<(float)*workSize/(float)(1024 * 1024 * 1024)<<" GB\n";
 	
     cudaError_t err = cudaMalloc(workArea, *workSize);
     if(err) {
@@ -677,7 +671,7 @@ cufftResult createPlans(size_t N1, size_t N2, size_t N3, cufftHandle *planR2C, c
 	}
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc work area)\n";
 
 
     r = cufftSetWorkArea(*planR2C, *workArea);
@@ -735,7 +729,7 @@ static cudaError_t numBlocksThreads(unsigned int N, dim3 *numBlocks, dim3 *threa
     if(err) return err;
     err = cudaDeviceGetAttribute(&Nz, cudaDevAttrMaxBlockDimZ, device);
     if(err) return err;
-    printf("Nx: %d, Ny: %d, Nz: %d\n", Nx, Ny, Nz);
+    //printf("Nx: %d, Ny: %d, Nz: %d\n", Nx, Ny, Nz);
     unsigned int n = (N-1) / BLOCKSIZE + 1;
     unsigned int x = (n-1) / (Ny*Nz) + 1;
     unsigned int y = (n-1) / (x*Nz) + 1;
@@ -762,8 +756,8 @@ int conv_device(size_t N1, size_t N2, size_t N3,
 	// memroy information
 	size_t freeMem, totalMem;
 
-	//std::cout<<"Starting Cuda convolution\n";
-	printf("input size: %d %d %d", N1, N2, N3);
+	std::cout<<"Starting Cuda convolution\n";
+	//printf("input size: %d %d %d", N1, N2, N3);
 
     float *image = 0; // convolved image (constant)
     float *psf=0;
@@ -789,8 +783,8 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     mSpatial = spatialBlocks.x * spatialBlocks.y * spatialBlocks.z * spatialThreadsPerBlock.x * sizeof(float);
     mFreq = freqBlocks.x * freqBlocks.y * freqBlocks.z * freqThreadsPerBlock.x * sizeof(cuComplex);
 
-    printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
-    printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
+    //printf("N: %ld, M: %ld\n", nSpatial, mSpatial);
+    //printf("Blocks: %d x %d x %d, Threads: %d x %d x %d\n", spatialBlocks.x, spatialBlocks.y, spatialBlocks.z, spatialThreadsPerBlock.x, spatialThreadsPerBlock.y, spatialThreadsPerBlock.z);
 	fflush(stdin);
 
 	//std::cout<<"N spatial: "<<nSpatial<<" M spatial: "<<mSpatial<<"\n"<<std::flush;
@@ -802,7 +796,7 @@ int conv_device(size_t N1, size_t N2, size_t N3,
     cudaProfilerStart();
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total at start of Convolution\n";
 
     err = cudaMalloc(&image, mSpatial);
     if(err)  {
@@ -810,7 +804,7 @@ int conv_device(size_t N1, size_t N2, size_t N3,
 		goto cudaErr;
 	}
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc image)\n";
 
 
     err = cudaMalloc(&out, mSpatial);
@@ -819,7 +813,7 @@ int conv_device(size_t N1, size_t N2, size_t N3,
 		goto cudaErr;
 	}
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc out)\n";
 
 	err = cudaMalloc(&psf, mSpatial);
     if(err)  {
@@ -828,7 +822,7 @@ int conv_device(size_t N1, size_t N2, size_t N3,
 	}
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc PSF)\n";
 	
     err = cudaMalloc(&buf, mFreq); // mFreq > mSpatial
      if(err)  {
@@ -837,7 +831,7 @@ int conv_device(size_t N1, size_t N2, size_t N3,
 	}
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc buf)\n";
 
 	err = cudaMalloc(&otf, mFreq); // mFreq > mSpatial
     if(err)  {
@@ -846,7 +840,7 @@ int conv_device(size_t N1, size_t N2, size_t N3,
 	}
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	//std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (malloc OTF)\n";
 
     err = cudaMemset(image, 0, mSpatial);
     if(err) goto cudaErr;
@@ -915,6 +909,7 @@ cleanup:
     if(workArea) cudaFree(workArea);
     cudaProfilerStop();
     cudaDeviceReset();
+    std::cout<<"Finished Convolution\n\n";
     return retval;
 }
 
@@ -922,7 +917,33 @@ extern "C" int setDevice(int device) {
 	return(cudaSetDevice(device));
 }
 
-extern "C" int getWorkSize(size_t N1, size_t N2, size_t N3) {
+extern "C" long long getTotalMem() {
+
+	size_t freeMem, totalMem;
+
+	cudaMemGetInfo(&freeMem, &totalMem);
+	
+	return (long long)totalMem;
+}
+
+extern "C" int getDeviceCount() {
+	int deviceCount;
+
+	cudaGetDeviceCount(&deviceCount);
+
+	return deviceCount;
+}
+
+extern "C" long long getFreeMem() {
+
+	size_t freeMem, totalMem;
+
+	cudaMemGetInfo(&freeMem, &totalMem);
+
+	return (long long)freeMem;
+}
+
+extern "C" long long getWorkSize(size_t N1, size_t N2, size_t N3) {
 
 	size_t freeMem, totalMem;
 
@@ -931,8 +952,9 @@ extern "C" int getWorkSize(size_t N1, size_t N2, size_t N3) {
 	cudaProfilerStart();
 
 	cudaMemGetInfo(&freeMem, &totalMem);
-	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total\n";
+	std::cout << (float)freeMem / (float)(1024 * 1024 * 1024) << " G free out of " << (float)totalMem / (float)(1024 * 1024 * 1024) << " total (get work size)\n";
 
+  fflush(stdout);
 	cufftResult r;
 
 	cufftHandle planR2C, planC2R;
@@ -960,6 +982,14 @@ extern "C" int getWorkSize(size_t N1, size_t N2, size_t N3) {
 		workSize = temp;
 	}
 	
-	return workSize;
+	return (long long)workSize;
 }
 
+void removeSmallValues(float *in, long long size) {
+	for (long long i=0;i<size;i++) {
+		if (in[i]<0.00001) {
+			in[i]=1.0;
+		}
+	}
+
+}
