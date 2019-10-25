@@ -4,6 +4,11 @@
 Created on Thu Oct 24 15:22:56 2019
 
 @author: bnorthan
+
+based on code from here
+
+https://github.com/koschink/PyYacuDecu
+
 """
 
 from ctypes import *
