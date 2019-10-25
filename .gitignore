@@ -36,6 +36,8 @@ CTestTestfile.cmake
 
 bin/
 
+__pycache__/
+
 .ipynb_checkpoints/
 
 ops-experiments-main/native/lib/
