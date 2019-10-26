@@ -1,0 +1,8 @@
+title: Ops-experiments
+description: Experimental repository to play with algorithms and ideas 
+show_downloads: false
+google_analytics:
+theme: jekyll-theme-minimal
+plugins:
+  - jekyll-redirect-from
+
