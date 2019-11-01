@@ -38,7 +38,6 @@ shifted_psf = np.fft.ifftshift(psf)
 result = np.copy(img);
 normal=np.ones(img.shape).astype(np.float32)
 
-
 lib=YacuDecuUtility.getYacuDecu()
 print('GPU Memory is',lib.getTotalMem())
 
@@ -68,7 +67,16 @@ deconvolved = itk.richardson_lucy_deconvolution_image_filter(
 end=time.time()
 print(end-start)
 
-result_itk = itk.array_from_image(deconvolved) 
+result_itk = itk.array_from_image(deconvolved)
+
+#matplotlib inline
+fig, ax = plt.subplots(1,2)
+ax[0].imshow(img.max(axis=0))
+ax[0].set_title('img')
+
+ax[1].imshow(result_itk.max(axis=0))
+ax[1].set_title('result itk')
+ 
 
 
 
