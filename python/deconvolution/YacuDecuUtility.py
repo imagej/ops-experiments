@@ -23,9 +23,11 @@ def getYacuDecu():
     array_3d_float = npct.ndpointer(dtype=np.float32, ndim=3 , flags='CONTIGUOUS')
     
     lib.deconv_device.argtypes = [c_int, c_int,c_int,c_int, array_3d_float, array_3d_float, array_3d_float, array_3d_float];
+    lib.conv_device.argtypes = [c_int,c_int,c_int, array_3d_float, array_3d_float, array_3d_float, c_int];
     lib.getTotalMem.restype=c_longlong
+    lib.removeSmallValues.argtypes = [array_3d_float, c_int]
     
-    print('gotYacuDecu')
+    print('gotYacuDecu!!')
     
     return lib
     
