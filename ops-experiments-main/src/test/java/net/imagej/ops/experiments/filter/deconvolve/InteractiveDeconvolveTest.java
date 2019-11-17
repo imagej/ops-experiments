@@ -3,9 +3,14 @@ package net.imagej.ops.experiments.filter.deconvolve;
 
 import java.io.IOException;
 
+import net.haesleinhuepf.clij.CLIJ;
+import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
+import net.haesleinhuepf.clij.customconvolutionplugin.Deconvolve;
 import net.imagej.ImageJ;
 import net.imagej.ops.experiments.testImages.Bars;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
+import net.imagej.ops.special.computer.Computers;
+import net.imagej.ops.special.computer.UnaryComputerOp;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
@@ -24,6 +29,8 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 		System.out.println("Lib path:" + libPathProperty);
 
 		ij.launch(args);
+		
+		stamp("Starting tests");
 
 		DeconvolutionTestData testData = new Bars("../images/");
 		// DeconvolutionTestData testData = new CElegans();
@@ -38,54 +45,95 @@ public class InteractiveDeconvolveTest<T extends RealType<T> & NativeType<T>> {
 
 		final int iterations = 100;
 		final int pad = 20;
-
-		// run Ops Richardson Lucy
-
-		final long startTime = System.currentTimeMillis();
-
-		// Img<FloatType> out = (Img<FloatType>) ij.op().create().img(imgF);
-
-		final Img<FloatType> deconvolved = (Img<FloatType>) ij.op().deconvolve()
-			.richardsonLucy(imgF, psfF, new long[] { pad, pad, pad }, null, null,
-				null, null, iterations, false, false);
-
-		final long endTime = System.currentTimeMillis();
-
-		ij.log().info("Total execution time (Ops) is: " + (endTime - startTime));
-
-		ij.ui().show("Richardson Lucy deconvolved", deconvolved);
-
-		// run Cuda Richardson Lucy op
-		/*	
-			startTime = System.currentTimeMillis();
-			
-			final RandomAccessibleInterval<FloatType> outputCuda = (RandomAccessibleInterval<FloatType>) ij.op()
-					.run(YacuDecuRichardsonLucyOp.class, imgF, psfF, new long[] { pad, pad, pad }, iterations);
-			
-			endTime = System.currentTimeMillis();
-			
-			ij.log().info("Total execution time (Cuda) is: " + (endTime - startTime));
-			
-			
-			ij.ui().show("cuda op deconvolved", outputCuda);
-		/*	
-			// run MKL Richardson Lucy
-			
-			startTime = System.currentTimeMillis();
-			
-			// run MKL Richardson Lucy op
-			final RandomAccessibleInterval<FloatType> outputMKL = (RandomAccessibleInterval<FloatType>) ij.op()
-					.run(MKLRichardsonLucyOp.class, imgF, psfF, new long[]{pad,pad,pad}, null, null, null, iterations, true);
-			
-			endTime = System.currentTimeMillis();
-			
-			
-			ij.log().info("Total execution time (MKL) is: " + (endTime - startTime));
-			
-			
-			ij.ui().show("mkl op deconvolved", outputMKL);
-			*/
+		
+		RandomAccessibleInterval<FloatType> deconvolvedMKL = deconvolveMKL(imgF, psfF, iterations);
+		stamp("Deconvolve with MKL ");
+				
+		RandomAccessibleInterval<FloatType>deconvolvedOps = deconvolveOps(imgF, psfF, iterations);
+		stamp("Deconvolve with Ops ");
+		
+		RandomAccessibleInterval<FloatType> deconvolvedCuda = deconvolveCuda(imgF, psfF, iterations);
+		stamp("Deconvolve with Cuda ");
+	
+		//RandomAccessibleInterval<FloatType> deconvolvedCLIJ = deconvolveCLIJ(imgF, psfF, iterations);
+		//stamp("Deconvolve with CLIJ ");
+		
+		ij.ui().show("Deconvolved Ops", deconvolvedOps);
+		ij.ui().show("Deconvolved Cuda", deconvolvedCuda);
+		ij.ui().show("Deconvolved MKL", deconvolvedMKL);
+		//ij.ui().show("Deconvolved CLIJ", deconvolvedCLIJ);
+		
 
 	}
+	
+	private static RandomAccessibleInterval<FloatType> deconvolveOps(RandomAccessibleInterval<FloatType> imgF, RandomAccessibleInterval<FloatType> psfF, int iterations) {
+
+		return (Img<FloatType>) ij.op().deconvolve()
+			.richardsonLucy(imgF, psfF, null, null, null,
+				null, null, iterations, false, false);
+
+	}
+	
+	private static RandomAccessibleInterval<FloatType> deconvolveCuda(RandomAccessibleInterval<FloatType> imgF, RandomAccessibleInterval<FloatType> psfF, int iterations) {
+		@SuppressWarnings("unchecked")
+		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
+			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerYacuDecu.class,
+				RandomAccessibleInterval.class, imgF, psfF, iterations);
+
+
+		RandomAccessibleInterval<FloatType> outputCuda = ij.op().create().img(
+			imgF);
+
+		deconvolver.compute(imgF, outputCuda);
+		
+		return outputCuda;
+
+	}
+	
+	private static RandomAccessibleInterval<FloatType> deconvolveCLIJ(RandomAccessibleInterval<FloatType> imgF, RandomAccessibleInterval<FloatType> psfF, int iterations) {
+    // init CLIJ
+    stamp("");
+    CLIJ clij = CLIJ.getInstance();
+    stamp("init clij");
+
+    ClearCLBuffer inputCL = clij.convert(imgF, ClearCLBuffer.class);
+    ClearCLBuffer psfCL = clij.convert(psfF, ClearCLBuffer.class);
+    ClearCLBuffer deconvolvedCL = clij.createCLBuffer(inputCL);
+    stamp("allocate and convert with clij");
+
+    Deconvolve.deconvolveWithCustomKernel(clij, inputCL, psfCL, deconvolvedCL, iterations);
+    
+    stamp("deconvolve with clij");
+
+    return (RandomAccessibleInterval)clij.pullRAI(deconvolvedCL);
+
+	
+	}
+	
+	private static RandomAccessibleInterval<FloatType> deconvolveMKL(RandomAccessibleInterval<FloatType> imgF, RandomAccessibleInterval<FloatType> psfF, int iterations) {
+
+		@SuppressWarnings("unchecked")
+		final UnaryComputerOp<RandomAccessibleInterval<FloatType>, RandomAccessibleInterval<FloatType>> deconvolver =
+			(UnaryComputerOp) Computers.unary(ij.op(), UnaryComputerMKLDecon.class,
+				RandomAccessibleInterval.class, imgF, psfF, iterations);
+
+		Img<FloatType> deconvolved = ij.op().create().img(imgF);
+
+		deconvolver.compute(imgF, deconvolved);
+		
+		return deconvolved;
+
+	}
+	
+	
+	// stamp function originally from 
+  private static long timeStamp;
+  private static void stamp(String text) {
+      if (text.length() > 0) {
+          System.out.println(text + " took " + (System.currentTimeMillis() - timeStamp) + " msec");
+      }
+
+      timeStamp = System.currentTimeMillis();
+  }
 
 }
