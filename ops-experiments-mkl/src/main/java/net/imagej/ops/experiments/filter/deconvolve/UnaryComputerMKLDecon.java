@@ -52,6 +52,9 @@ public class UnaryComputerMKLDecon<I extends RealType<I>, O extends RealType<O>,
 
 	@Parameter(required = false)
 	boolean nonCirculant = true;
+	
+	@Parameter(required = false)
+	long[] extendedSize = null;
 
 	OutOfBoundsFactory<I, RandomAccessibleInterval<I>> obfInput;
 
@@ -64,7 +67,7 @@ public class UnaryComputerMKLDecon<I extends RealType<I>, O extends RealType<O>,
 		@SuppressWarnings("unchecked")
 		final UnaryComputerOp<RandomAccessibleInterval<I>, RandomAccessibleInterval<O>> deconvolver =
 			(UnaryComputerOp) Computers.unary(ops, UnaryComputerNativeRichardsonLucy.class,
-				RandomAccessibleInterval.class, input, psf, iterations, nonCirculant, this);
+				RandomAccessibleInterval.class, input, psf, iterations, nonCirculant, extendedSize, this);
 
 		deconvolver.compute(input, output);
 
