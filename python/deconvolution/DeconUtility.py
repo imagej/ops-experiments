@@ -28,6 +28,20 @@ def padNDImage(img, paddedSize, padMethod):
     
     padding = [(int(floor((paddedSize[i]-img.shape[i])/2)), int(ceil((paddedSize[i]-img.shape[i])/2))) for i in range(len(paddedSize))]
     return np.pad(img, padding, padMethod), padding
+
+def nextPow2(dims):
+    out=[]
+    for d in range(len(dims)):
+        nextpow2=1;
+        pow=1;
+        while nextpow2<dims[d]:
+            nextpow2=2**(pow)
+            pow=pow+1
+        out.append(nextpow2)
+    return out
+            
+                    
+                
     
     
     
