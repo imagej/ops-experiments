@@ -12,6 +12,9 @@ target/
 /.metadata
 /.recommenders
 
+# vscode #
+.vscode/
+
 # binaries #
 *.class
 *.exp
@@ -36,6 +39,7 @@ compile_commands.json
 CTestTestfile.cmake
 
 bin/
+build/
 
 __pycache__/
 
