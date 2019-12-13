@@ -112,8 +112,121 @@ cl_int callKernel(cl_kernel kernel, cl_mem in1, cl_mem in2, cl_mem out, unsigned
 }
 
 void test() {
-  printf("Test opencldeconv entry point\n");
+  printf("Test opencldeconv entry point \n");
+
+  void * test;
+  cl_mem test2=(cl_mem)(test);
 }
+
+
+int fft2d_long(long N0, long N1, long d_image, long d_out) {
+  printf("input address %ld", d_image);
+  printf("input address %lu", (unsigned long)d_image);
+
+  cl_platform_id platformId = NULL;
+	cl_device_id deviceID = NULL;
+	cl_uint retNumDevices;
+	cl_uint retNumPlatforms;
+  cl_int ret = clGetPlatformIDs(1, &platformId, &retNumPlatforms);
+
+  printf("\ncreated platform\n");
+
+	ret = clGetDeviceIDs(platformId, CL_DEVICE_TYPE_DEFAULT, 1, &deviceID, &retNumDevices);
+  
+	// Creating context.
+	cl_context context = clCreateContext(NULL, 1, &deviceID, NULL, NULL,  &ret);
+
+  printf("\ncreated context\n");
+
+	// Creating command queue
+	cl_command_queue commandQueue = clCreateCommandQueue(context, deviceID, 0, &ret);
+
+  printf("\ncreated command queue\n");
+
+  // number of elements in Hermitian (interleaved) output 
+  unsigned long nFreq=N1*(N0/2+1);
+/*	
+  // Memory buffers for each array
+	cl_mem aMemObj = clCreateBuffer(context, CL_MEM_READ_WRITE, N1 * N0 * sizeof(float), NULL, &ret);
+  printf("\ncreate variable 1 %d\n", ret);
+	
+  printf("\nallocated memory\n");
+
+   // Copy lists to memory buffers
+	ret = clEnqueueWriteBuffer(commandQueue, aMemObj, CL_TRUE, 0, N1 * N0 * sizeof(float), h_image, 0, NULL, NULL);;
+  printf("\ncopy to GPU  %d\n", ret);
+
+  // create output buffer (note each complex number is represented by 2 floats)
+  cl_mem FFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq*sizeof(float), NULL, &ret);
+  printf("\ncreate FFT %d\n", ret);
+*/	 
+  /* FFT library realted declarations */
+  clfftPlanHandle planHandleForward;
+  clfftDim dim = CLFFT_2D;
+  size_t clLengths[2] = {N0, N1};
+  size_t inStride[3] = {1, N0};
+  // note each output row has N0/2+1 complex numbers 
+  size_t outStride[3] = {1,N0/2+1};
+
+  /* Setup clFFT. */
+  clfftSetupData fftSetup;
+  ret = clfftInitSetupData(&fftSetup);
+  printf("clfft init %d\n", ret);
+  ret = clfftSetup(&fftSetup);
+
+  printf("clfft setup %d\n", ret);
+  /* Create a default plan for a complex FFT. */
+  ret = clfftCreateDefaultPlan(&planHandleForward, context, dim, clLengths);
+
+  printf("Create Default Plan %d\n", ret);
+  
+  /* Set plan parameters. */
+  ret = clfftSetPlanPrecision(planHandleForward, CLFFT_SINGLE);
+  printf("clfft precision %d\n", ret);
+  ret = clfftSetLayout(planHandleForward, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
+  printf("clfft set layout real hermittian interveaved %d\n", ret);
+  ret = clfftSetResultLocation(planHandleForward, CLFFT_OUTOFPLACE);
+  printf("clfft set result location %d\n", ret);
+  ret=clfftSetPlanInStride(planHandleForward, dim, inStride);
+  printf("clfft set instride %d\n", ret);
+  ret=clfftSetPlanOutStride(planHandleForward, dim, outStride);
+  printf("clfft set out stride %d\n", ret);
+
+  /* Bake the plan. */
+  ret = clfftBakePlan(planHandleForward, 1, &commandQueue, NULL, NULL);
+
+  printf("Bake %d\n", ret);
+  ret = clFinish(commandQueue);
+  printf("Finish Command Queue %d\n", ret);
+
+  cl_mem *cl_mem_image=(cl_mem*)d_image;
+  cl_mem *cl_mem_out=(cl_mem*)d_out;
+  //cl_mem_image
+  
+  /* Execute the plan. */
+  ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, cl_mem_image, cl_mem_out, NULL);
+
+  printf("Forward FFT %d\n", ret);
+  ret = clFinish(commandQueue);
+  printf("Finish Command Queue for forward FFT %d\n", ret);
+  
+  // Release OpenCL memory objects. 
+
+   // Release the plan. 
+   ret = clfftDestroyPlan( &planHandleForward );
+
+   // Release clFFT library. 
+   clfftTeardown( );
+
+   // Release OpenCL working objects.
+   clReleaseCommandQueue( commandQueue );
+   clReleaseContext( context );
+ 
+  return 0; 
+}
+
+
+
 
 int fft2d(size_t N0, size_t N1, float *h_image, float * h_out) {
  
@@ -147,7 +260,7 @@ int fft2d(size_t N0, size_t N1, float *h_image, float * h_out) {
 	ret = clEnqueueWriteBuffer(commandQueue, aMemObj, CL_TRUE, 0, N1 * N0 * sizeof(float), h_image, 0, NULL, NULL);;
   printf("\ncopy to GPU  %d\n", ret);
 
-  // number of elements in Hermatian (interleaved) output 
+  // number of elements in Hermitian (interleaved) output 
   unsigned long nFreq=N1*(N0/2+1);
 
   // create output buffer (note each complex number is represented by 2 floats)
@@ -227,7 +340,7 @@ Inverse complex to real FFT
 
 N0 - real width
 N1 - real height
-h_fft - a complex Hermatian interleaved FFT of size (N0/2+1) by N1 
+h_fft - a complex Hermitian interleaved FFT of size (N0/2+1) by N1 
 h_out - a (contiguous) N0 by N1 float array
 */
 int fftinv2d(size_t N0, size_t N1, float *h_fft, float * h_out) {
@@ -252,7 +365,7 @@ int fftinv2d(size_t N0, size_t N1, float *h_fft, float * h_out) {
 
   printf("\ncreated command queue\n");
 
-  // number of elements in Hermatian (interleaved) output 
+  // number of elements in Hermitian (interleaved) output 
   unsigned long nFreq = (N0/2+1)*N1;
 	
   // declare FFT memory on GPU
