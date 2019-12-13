@@ -17,7 +17,7 @@ image= data.coins().astype(np.float32)
 # crop to 256 by 256 (TODO write code to find the closest supported and/or fast size)
 image = np.ascontiguousarray(image[0:256, 0:256])
 
-# size of first dimension of FFT assuming Hermatian interleaved 
+# size of first dimension of FFT assuming Hermitian interleaved 
 M0=int(256)/int(2)+1;
 M0=int(M0)
 print("M0 is: ",M0)
