@@ -60,15 +60,27 @@ deconaf=img.copy()
 
 #lib.conv(img.shape[0], img.shape[1], img.shape[2], img, shifted_psf, out2);
 start=time.time()
-libaf.deconv(100,img.shape[2], img.shape[1], img.shape[0], img, shifted_psf, deconaf, img);
+libaf.deconv(1,img.shape[2], img.shape[1], img.shape[0], img, shifted_psf, deconaf, img);
 end=time.time()
 aftime=end-start
 print('af time', aftime)
 
 start=time.time()
-libcl.deconv(100,img.shape[2], img.shape[1], img.shape[0], img, shifted_psf, deconcl, img);
+libcl.deconv(1,img.shape[2], img.shape[1], img.shape[0], img, shifted_psf, deconcl, img);
 end=time.time()
 cltime=end-start
 print('cl time', cltime)
 
-plt.imshow(out2.max(axis=0))
+
+#matplotlib inline
+fig, ax = plt.subplots(1,3)
+fig.set_figwidth(15)
+ax[0].imshow(img.max(axis=0))
+ax[0].set_title('img')
+
+ax[1].imshow(deconaf.max(axis=0))
+ax[1].set_title('deconaf')
+
+ax[2].imshow(deconcl.max(axis=0))
+ax[2].set_title('opencl result')
+

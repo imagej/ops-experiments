@@ -56,16 +56,51 @@ CMAKE_BINARY_DIR = /home/bnorthan/code/imagej/ops-experiments/ops-experiments-op
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
 
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
 
-.PHONY : rebuild_cache/fast
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -77,6 +112,17 @@ edit_cache:
 edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -111,71 +157,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named helloarrayfire
-
-# Build rule for target.
-helloarrayfire: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 helloarrayfire
-.PHONY : helloarrayfire
-
-# fast build rule for target.
-helloarrayfire/fast:
-	$(MAKE) -f helloarrayfire/CMakeFiles/helloarrayfire.dir/build.make helloarrayfire/CMakeFiles/helloarrayfire.dir/build
-.PHONY : helloarrayfire/fast
-
-#=============================================================================
-# Target rules for targets named arrayfiredecon
-
-# Build rule for target.
-arrayfiredecon: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 arrayfiredecon
-.PHONY : arrayfiredecon
-
-# fast build rule for target.
-arrayfiredecon/fast:
-	$(MAKE) -f arrayfiredecon/CMakeFiles/arrayfiredecon.dir/build.make arrayfiredecon/CMakeFiles/arrayfiredecon.dir/build
-.PHONY : arrayfiredecon/fast
-
-#=============================================================================
-# Target rules for targets named arrayfiredecon_opencl
-
-# Build rule for target.
-arrayfiredecon_opencl: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 arrayfiredecon_opencl
-.PHONY : arrayfiredecon_opencl
-
-# fast build rule for target.
-arrayfiredecon_opencl/fast:
-	$(MAKE) -f arrayfiredecon/CMakeFiles/arrayfiredecon_opencl.dir/build.make arrayfiredecon/CMakeFiles/arrayfiredecon_opencl.dir/build
-.PHONY : arrayfiredecon_opencl/fast
-
-#=============================================================================
-# Target rules for targets named arrayfiredecon_cpu
-
-# Build rule for target.
-arrayfiredecon_cpu: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 arrayfiredecon_cpu
-.PHONY : arrayfiredecon_cpu
-
-# fast build rule for target.
-arrayfiredecon_cpu/fast:
-	$(MAKE) -f arrayfiredecon/CMakeFiles/arrayfiredecon_cpu.dir/build.make arrayfiredecon/CMakeFiles/arrayfiredecon_cpu.dir/build
-.PHONY : arrayfiredecon_cpu/fast
-
-#=============================================================================
-# Target rules for targets named arrayfiredecon_cuda
-
-# Build rule for target.
-arrayfiredecon_cuda: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 arrayfiredecon_cuda
-.PHONY : arrayfiredecon_cuda
-
-# fast build rule for target.
-arrayfiredecon_cuda/fast:
-	$(MAKE) -f arrayfiredecon/CMakeFiles/arrayfiredecon_cuda.dir/build.make arrayfiredecon/CMakeFiles/arrayfiredecon_cuda.dir/build
-.PHONY : arrayfiredecon_cuda/fast
-
-#=============================================================================
 # Target rules for targets named opencldeconv
 
 # Build rule for target.
@@ -194,13 +175,12 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
+	@echo "... install/strip"
+	@echo "... install"
+	@echo "... install/local"
+	@echo "... list_install_components"
 	@echo "... edit_cache"
-	@echo "... helloarrayfire"
-	@echo "... arrayfiredecon"
-	@echo "... arrayfiredecon_opencl"
-	@echo "... arrayfiredecon_cpu"
-	@echo "... arrayfiredecon_cuda"
+	@echo "... rebuild_cache"
 	@echo "... opencldeconv"
 .PHONY : help
 

@@ -3,6 +3,7 @@
 #include "clFFT.h"
 #include <math.h>
 #include "opencldeconv.h"
+#include <iostream>
 
 #define MAX_SOURCE_SIZE (0x100000)
 
@@ -119,7 +120,7 @@ void test() {
 }
 
 
-int fft2d_long(long N0, long N1, long d_image, long d_out) {
+int fft2d_long(long N0, long N1, long d_image, long d_out, long l_context, long l_queue) {
   printf("input address %ld", d_image);
   printf("input address %lu", (unsigned long)d_image);
 
@@ -133,33 +134,15 @@ int fft2d_long(long N0, long N1, long d_image, long d_out) {
 
 	ret = clGetDeviceIDs(platformId, CL_DEVICE_TYPE_DEFAULT, 1, &deviceID, &retNumDevices);
   
-	// Creating context.
-	cl_context context = clCreateContext(NULL, 1, &deviceID, NULL, NULL,  &ret);
-
-  printf("\ncreated context\n");
-
-	// Creating command queue
-	cl_command_queue commandQueue = clCreateCommandQueue(context, deviceID, 0, &ret);
-
-  printf("\ncreated command queue\n");
+	// cast long to context 
+	cl_context context = (cl_context)l_context;
+  
+	// cast long to queue 
+	cl_command_queue commandQueue = (cl_command_queue)l_queue;
 
   // number of elements in Hermitian (interleaved) output 
   unsigned long nFreq=N1*(N0/2+1);
-/*	
-  // Memory buffers for each array
-	cl_mem aMemObj = clCreateBuffer(context, CL_MEM_READ_WRITE, N1 * N0 * sizeof(float), NULL, &ret);
-  printf("\ncreate variable 1 %d\n", ret);
 	
-  printf("\nallocated memory\n");
-
-   // Copy lists to memory buffers
-	ret = clEnqueueWriteBuffer(commandQueue, aMemObj, CL_TRUE, 0, N1 * N0 * sizeof(float), h_image, 0, NULL, NULL);;
-  printf("\ncopy to GPU  %d\n", ret);
-
-  // create output buffer (note each complex number is represented by 2 floats)
-  cl_mem FFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq*sizeof(float), NULL, &ret);
-  printf("\ncreate FFT %d\n", ret);
-*/	 
   /* FFT library realted declarations */
   clfftPlanHandle planHandleForward;
   clfftDim dim = CLFFT_2D;
@@ -199,33 +182,25 @@ int fft2d_long(long N0, long N1, long d_image, long d_out) {
   ret = clFinish(commandQueue);
   printf("Finish Command Queue %d\n", ret);
 
-  cl_mem *cl_mem_image=(cl_mem*)d_image;
-  cl_mem *cl_mem_out=(cl_mem*)d_out;
-  //cl_mem_image
+  cl_mem cl_mem_image=(cl_mem)d_image;
+  cl_mem cl_mem_out=(cl_mem)d_out;
   
   /* Execute the plan. */
-  ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, cl_mem_image, cl_mem_out, NULL);
-
+  ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &cl_mem_image, &cl_mem_out, NULL);
   printf("Forward FFT %d\n", ret);
+  
   ret = clFinish(commandQueue);
   printf("Finish Command Queue for forward FFT %d\n", ret);
   
-  // Release OpenCL memory objects. 
-
    // Release the plan. 
    ret = clfftDestroyPlan( &planHandleForward );
 
-   // Release clFFT library. 
-   clfftTeardown( );
+   clfftTeardown();
+   
+   printf("FFT finished\n");
 
-   // Release OpenCL working objects.
-   clReleaseCommandQueue( commandQueue );
-   clReleaseContext( context );
- 
-  return 0; 
+   return 0; 
 }
-
-
 
 
 int fft2d(size_t N0, size_t N1, float *h_image, float * h_out) {
@@ -448,7 +423,6 @@ int fftinv2d(size_t N0, size_t N1, float *h_fft, float * h_out) {
  
   return 0; 
 
-
 }
 
 int conv(size_t N0, size_t N1, size_t N2, float *h_image, float *h_psf, float *h_out) {
@@ -603,7 +577,6 @@ int conv(size_t N0, size_t N1, size_t N2, float *h_image, float *h_psf, float *h
   printf("Finish Command Queue %d\n", ret);
 
   // copy back to host 
-  
   ret = clEnqueueReadBuffer( commandQueue, d_out, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
   
   return 0;
@@ -734,7 +707,9 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
   size_t localItemSize=64;
  	// Execute the kernel
 	size_t globalItemSize= ceil((N2*N1*N0)/(float)localItemSize)*localItemSize;
-	size_t globalItemSizeFreq = ceil((nFreq)/(float)localItemSize)*localItemSize;
+	size_t globalItemSizeFreq = ceil((nFreq+1000)/(float)localItemSize)*localItemSize;
+
+  printf("nFreq %d glbalItemSizeFreq %d\n",nFreq, globalItemSizeFreq);
   
   /* Bake the plan. */
   ret = clfftBakePlan(planHandleForward, 1, &commandQueue, NULL, NULL);
@@ -757,9 +732,10 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
 
     // Inverse to get reblurred
     ret = clfftEnqueueTransform(planHandleBackward, CLFFT_BACKWARD, 1, &commandQueue, 0, NULL, NULL, &estimateFFT, &d_reblurred, NULL);
+    
     ret = clFinish(commandQueue);
     //printf("Finish first inverse FFT %d\n", ret);
-
+/*
     // divide observed by reblurred
     ret = callKernel(kernelDiv, d_observed, d_reblurred, d_reblurred, n, commandQueue, globalItemSize, localItemSize);
  
@@ -777,11 +753,12 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
     ret = callKernel(kernelMul, d_estimate, d_reblurred, d_estimate, n, commandQueue, globalItemSize, localItemSize);
     ret = clFinish(commandQueue);
     clReleaseMemObject( estimateFFT );
-    printf("Finished iteration %d\n",i);
+    printf("Finished iteration %d\n",i);*/
   }
   
   // copy back to host 
-  ret = clEnqueueReadBuffer( commandQueue, d_estimate, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
+  //ret = clEnqueueReadBuffer( commandQueue, d_estimate, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
+  ret = clEnqueueReadBuffer( commandQueue, d_reblurred, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
  
   // Release OpenCL memory objects. 
   clReleaseMemObject( d_estimate);

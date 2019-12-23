@@ -17,7 +17,7 @@ public class OpenCLWrapper {
 		Loader.load();
 	}
 
-	public static native long fft2d_long(long N1, long N2, long inPointer, long outPointer);
+	public static native long fft2d_long(long N1, long N2, long inPointer, long outPointer, long contextPointer, long queuePointer);
 
 	public static void load() {
 		Loader.load();
