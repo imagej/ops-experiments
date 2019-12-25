@@ -202,7 +202,6 @@ int fft2d_long(long N0, long N1, long d_image, long d_out, long l_context, long 
    return 0; 
 }
 
-
 int fft2d(size_t N0, size_t N1, float *h_image, float * h_out) {
  
   cl_platform_id platformId = NULL;
@@ -721,10 +720,11 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
   // FFT of PSF
   ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_psf, &psfFFT, NULL);
 
+  // FFT of estimate 
+	cl_mem estimateFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
+   
   for (int i=0;i<iterations;i++) {
-    // FFT of estimate 
-	  cl_mem estimateFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
-    ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_estimate, &estimateFFT, NULL);
+   ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_estimate, &estimateFFT, NULL);
 
     ret = clFinish(commandQueue);
  
@@ -735,7 +735,7 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
     
     ret = clFinish(commandQueue);
     //printf("Finish first inverse FFT %d\n", ret);
-/*
+
     // divide observed by reblurred
     ret = callKernel(kernelDiv, d_observed, d_reblurred, d_reblurred, n, commandQueue, globalItemSize, localItemSize);
  
@@ -752,13 +752,13 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
     // multiply estimate by update factor 
     ret = callKernel(kernelMul, d_estimate, d_reblurred, d_estimate, n, commandQueue, globalItemSize, localItemSize);
     ret = clFinish(commandQueue);
-    clReleaseMemObject( estimateFFT );
-    printf("Finished iteration %d\n",i);*/
-  }
+    printf("Finished iteration %d\n",i);
+  }  
+  
+  clReleaseMemObject( estimateFFT );
   
   // copy back to host 
-  //ret = clEnqueueReadBuffer( commandQueue, d_estimate, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
-  ret = clEnqueueReadBuffer( commandQueue, d_reblurred, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
+  ret = clEnqueueReadBuffer( commandQueue, d_estimate, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
  
   // Release OpenCL memory objects. 
   clReleaseMemObject( d_estimate);

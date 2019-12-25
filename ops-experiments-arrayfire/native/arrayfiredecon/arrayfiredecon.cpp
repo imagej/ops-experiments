@@ -83,11 +83,8 @@ int deconv(unsigned int iter, size_t N1, size_t N2, size_t N3, float *h_image, f
       fft1 = fft1*fft2;
       af::array reblurred = af::fftC2R<3>(fft1,false,1./(double)(N1*N2*N3));
 
-      // temp 
-      a_object = reblurred;
-
       // divide observed image by reblurred
-   /*   af::array div = a_image/reblurred;
+      af::array div = a_image/reblurred;
       
       // correlate with PSF to get update factor
       fft1=af::fftR2C<3>(div);
@@ -95,7 +92,7 @@ int deconv(unsigned int iter, size_t N1, size_t N2, size_t N3, float *h_image, f
       af::array update = af::fftC2R<3>(fft1,false, 1./(double)(N1*N2*N3));
       
       // update object 
-      a_object=update*a_object;*/
+      a_object=update*a_object;
     }
     
     a_object.host(h_object);
