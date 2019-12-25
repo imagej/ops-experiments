@@ -38,8 +38,10 @@ const char * programString =                                       "\n" \
 "                                                                \n" \
 "    //Make sure we do not go out of bounds                      \n" \
 "    if (id < n)  {                                               \n" \
-"        c[2*id] = a[2*id] * b[2*id]-a[2*id+1]*b[2*id+1];                                  \n" \
-"        c[2*id+1] = a[2*id]*b[2*id+1] + a[2*id+1]*b[2*id];                            \n" \
+"        float real = a[2*id] * b[2*id]-a[2*id+1]*b[2*id+1];                                  \n" \
+"        float imag = a[2*id]*b[2*id+1] + a[2*id+1]*b[2*id];                            \n" \
+"        c[2*id]=real; \n" \
+"        c[2*id+1]=imag; \n" \
 "        }                           \n" \
 "}                                                               \n" \
 "#pragma OPENCL EXTENSION cl_khr_fp64 : enable                    \n" \
@@ -53,9 +55,11 @@ const char * programString =                                       "\n" \
 "                                                                \n" \
 "    //Make sure we do not go out of bounds                      \n" \
 "    if (id < n)  {                                               \n" \
-"        c[2*id] = a[2*id] * b[2*id]+a[2*id+1]*b[2*id+1];                                  \n" \
-"        c[2*id+1] = -a[2*id]*b[2*id+1] + a[2*id+1]*b[2*id];                            \n" \
-"        }                           \n" \
+"        float real= a[2*id] * b[2*id]+a[2*id+1]*b[2*id+1];                                  \n" \
+"        float imag = -a[2*id]*b[2*id+1] + a[2*id+1]*b[2*id];                            \n" \
+"        c[2*id]=real; \n" \
+"        c[2*id+1]=imag; \n" \
+"     }                           \n" \
 "}                                                               \n" \
 "#pragma OPENCL EXTENSION cl_khr_fp64 : enable                    \n" \
 "__kernel void vecDiv(  __global float *a,                       \n" \
