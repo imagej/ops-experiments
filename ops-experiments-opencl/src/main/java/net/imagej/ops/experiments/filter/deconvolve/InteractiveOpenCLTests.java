@@ -49,6 +49,10 @@ public class InteractiveOpenCLTests <T extends RealType<T> & NativeType<T>> {
 		CLIJ clij = CLIJ.getInstance();
 		
 		ClearCLBuffer gpuInput = clij.push(img);
+		ClearCLPeerPointer clPointer= gpuInput.getPeerPointer();
+		System.out.println(clPointer.getClass());
+		Object pointer=clPointer.getPointer();
+	  System.out.println(pointer.getClass());
 		
 		long[] fftDim=new long[] {(gpuInput.getWidth()/2+1)*2, gpuInput.getHeight()};
 		ClearCLBuffer gpuFFT = clij.create(fftDim, NativeTypeEnum.Float);
@@ -63,19 +67,16 @@ public class InteractiveOpenCLTests <T extends RealType<T> & NativeType<T>> {
 	
 		System.out.println(inPointer);
 		System.out.println(inPointer.getClass());
-		
 		System.out.println(inPointer.toString());
 	
 		OpenCLWrapper.fft2d_long((long)(gpuInput.getWidth()),gpuInput.getHeight(), l_in, l_out, l_context, l_queue);
 		
 		clij.show(gpuFFT, "GPU FFT");
 		
-		RandomAccessibleInterval<FloatType> test = (RandomAccessibleInterval<FloatType>)clij.pullRAI(gpuFFT);
+		RandomAccessibleInterval<FloatType> result= (RandomAccessibleInterval<FloatType>)clij.pullRAI(gpuFFT);
 
-		Img<ComplexFloatType> test2 = stupidCopy(test);
-		
-	
-		ImageJFunctions.show(test2, "FFT OpenCL");
+		Img<ComplexFloatType> resultComplex = copyAsComplex(result);
+		ImageJFunctions.show(resultComplex, "FFT OpenCL");
 		
 		RandomAccessibleInterval<ComplexFloatType> fftOps = ij.op().filter().fft(img);
 		ImageJFunctions.show(fftOps, "FFT Ops");
@@ -96,13 +97,13 @@ public class InteractiveOpenCLTests <T extends RealType<T> & NativeType<T>> {
 		return Long.decode(hack);
 	}
 	
-	static Img<ComplexFloatType> stupidCopy(RandomAccessibleInterval<FloatType> in) {
-		float[] dumb=new float[(int)(in.dimension(0)*in.dimension(1))];
+	static Img<ComplexFloatType> copyAsComplex(RandomAccessibleInterval<FloatType> in) {
+		float[] temp=new float[(int)(in.dimension(0)*in.dimension(1))];
 		int i=0;
 		for (FloatType f:Views.iterable(in)) {
-			dumb[i++]=f.getRealFloat();
+			temp[i++]=f.getRealFloat();
 		}
 		
-		return ArrayImgs.complexFloats(dumb, new long[] {in.dimension(0)/2, in.dimension(1)});
+		return ArrayImgs.complexFloats(temp, new long[] {in.dimension(0)/2, in.dimension(1)});
 	}
 }
