@@ -60,13 +60,13 @@ deconaf=img.copy()
 
 #lib.conv(img.shape[0], img.shape[1], img.shape[2], img, shifted_psf, out2);
 start=time.time()
-libaf.deconv(1,img.shape[2], img.shape[1], img.shape[0], img, shifted_psf, deconaf, img);
+libaf.deconv(100,img.shape[2], img.shape[1], img.shape[0], img, shifted_psf, deconaf, img);
 end=time.time()
 aftime=end-start
 print('af time', aftime)
 
 start=time.time()
-libcl.deconv(1,img.shape[2], img.shape[1], img.shape[0], img, shifted_psf, deconcl, img);
+libcl.deconv(100,img.shape[2], img.shape[1], img.shape[0], img, shifted_psf, deconcl, img);
 end=time.time()
 cltime=end-start
 print('cl time', cltime)
