@@ -585,50 +585,33 @@ int conv(size_t N0, size_t N1, size_t N2, float *h_image, float *h_psf, float *h
   return 0;
 }
 
-int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, float *h_psf, float *h_out, float * normal) {
 
-  cl_platform_id platformId = NULL;
-	cl_device_id deviceID = NULL;
-	cl_uint retNumDevices;
-	cl_uint retNumPlatforms;
-  cl_int ret = clGetPlatformIDs(1, &platformId, &retNumPlatforms);
-  printf("\ncreated platform %d \n",ret);
-	
-  ret = clGetDeviceIDs(platformId, CL_DEVICE_TYPE_DEFAULT, 1, &deviceID, &retNumDevices);
-  printf("\nget device IDs %d \n",ret);
-	
-  // Creating context.
-	cl_context context = clCreateContext(NULL, 1, &deviceID, NULL, NULL,  &ret);
-  printf("created context %d\n", ret);
+int deconv_long(int iterations, size_t N0, size_t N1, size_t N2, long l_observed, long l_psf, long l_estimate, long l_normal, long l_context, long l_queue, long l_device) {
 
-	// Creating command queue
-	cl_command_queue commandQueue = clCreateCommandQueue(context, deviceID, 0, &ret);
-  printf("created command queue %d\n", ret);
-	
-  // Memory buffers for each array
-	cl_mem d_observed = clCreateBuffer(context, CL_MEM_READ_WRITE, N2*N1*N0 * sizeof(float), NULL, &ret);
-  printf("\ncreate gpu mem for image %d\n", ret);
-	cl_mem d_psf = clCreateBuffer(context, CL_MEM_READ_WRITE, N2*N1*N0 * sizeof(float), NULL, &ret);
-  printf("\ncreate gpu mem for psf %d\n", ret);
-	cl_mem d_estimate = clCreateBuffer(context, CL_MEM_READ_WRITE, N2*N1*N0 * sizeof(float), NULL, &ret);
-  printf("\ncreate variable 3 %d\n", ret);
- 	cl_mem d_reblurred = clCreateBuffer(context, CL_MEM_READ_WRITE, N2*N1*N0 * sizeof(float), NULL, &ret);
-  printf("\ncreate variable 3 %d\n", ret);
+  cl_int ret;
   
-  printf("\nallocated memory\n");
-
-  // Copy lists to memory buffers
-	ret = clEnqueueWriteBuffer(commandQueue, d_observed, CL_TRUE, 0, N2*N1*N0 * sizeof(float), h_image, 0, NULL, NULL);;
-  printf("\ncopy to GPU  %d\n", ret);
-	ret = clEnqueueWriteBuffer(commandQueue, d_psf, CL_TRUE, 0, N2*N1*N0 * sizeof(float), h_psf, 0, NULL, NULL);
-  printf("\ncopy to GPU  %d\n", ret);
-	ret = clEnqueueWriteBuffer(commandQueue, d_estimate, CL_TRUE, 0, N2*N1*N0 * sizeof(float), h_out, 0, NULL, NULL);
-  printf("\ncopy to GPU  %d\n", ret);
-
+	// cast long to context 
+	cl_context context = (cl_context)l_context;
+  
+	// cast long to queue 
+	cl_command_queue commandQueue = (cl_command_queue)l_queue;
+	
+  // create device memory buffers for each array
+	cl_mem d_observed = (cl_mem)l_observed;
+	cl_mem d_psf =  (cl_mem)l_psf;
+	cl_mem d_estimate = (cl_mem)l_estimate; 
+  cl_device_id deviceID = (cl_device_id)l_device;
   unsigned long n = N0*N1*N2;
   unsigned long nFreq=(N0/2+1)*N1*N2;
- 	
+
+  // create memory for reblurred 	
+  cl_mem d_reblurred = clCreateBuffer(context, CL_MEM_READ_WRITE, N2*N1*N0 * sizeof(float), NULL, &ret);
+  printf("\ncreate memory for reblurred %d\n", ret);
+ 
+  // create memory for FFT of estimate and PSF 
+	cl_mem estimateFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
   cl_mem psfFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
+  
   printf("\ncreate PSF FFT %d\n", ret);
   printf("\ncreate Object FFT %d\n", ret);
 	
@@ -661,7 +644,7 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
 	cl_kernel kernelMul = clCreateKernel(program, "vecMul", &ret);
   printf("\ncreate Divide KERNEL in GPU %d\n", ret);
   
-    /* FFT library related declarations */
+  // FFT library related declarations 
   clfftPlanHandle planHandleForward;
   clfftPlanHandle planHandleBackward;
   clfftDim dim = CLFFT_3D;
@@ -669,20 +652,20 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
   size_t imgStride[3] = {1, N0, N0*N1};
   size_t fftStride[3] = {1, (N0/2+1), (N0/2+1)*N1};
 
-  /* Setup clFFT. */
+  // Setup clFFT
   clfftSetupData fftSetup;
   ret = clfftInitSetupData(&fftSetup);
   printf("clfft init %d\n", ret);
   ret = clfftSetup(&fftSetup);
-
   printf("clfft setup %d\n", ret);
-  /* Create a default plan for a complex FFT. */
+  
+  // Create default plans for forward and backward FFT 
   ret = clfftCreateDefaultPlan(&planHandleForward, context, dim, clLengths);
   ret = clfftCreateDefaultPlan(&planHandleBackward, context, dim, clLengths);
 
   printf("Create Default Plan %d\n", ret);
   
-  /* Set plan parameters. */
+  // Set plan parameters for forward FFT
   ret = clfftSetPlanPrecision(planHandleForward, CLFFT_SINGLE);
   printf("clfft precision %d\n", ret);
   ret = clfftSetLayout(planHandleForward, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
@@ -694,7 +677,7 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
   ret=clfftSetPlanOutStride(planHandleForward, dim, fftStride);
   printf("clfft set out stride %d\n", ret);
 
-  /* Set plan parameters. */
+  // Set plan parameters for backward FFT
   ret = clfftSetPlanPrecision(planHandleBackward, CLFFT_SINGLE);
   printf("clfft precision %d\n", ret);
   ret = clfftSetLayout(planHandleBackward, CLFFT_HERMITIAN_INTERLEAVED, CLFFT_REAL);
@@ -705,71 +688,59 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
   printf("clfft set instride %d\n", ret);
   ret=clfftSetPlanOutStride(planHandleBackward, dim, imgStride);
   printf("clfft set out stride %d\n", ret);
-  //clfftSetPlanScale(planHandleBackward, CLFFT_BACKWARD, 1/(float)(N0*N1*N2));
-  // complex multiply estimate and PSF
-  size_t localItemSize=64;
- 	// Execute the kernel
-	size_t globalItemSize= ceil((N2*N1*N0)/(float)localItemSize)*localItemSize;
-	size_t globalItemSizeFreq = ceil((nFreq+1000)/(float)localItemSize)*localItemSize;
-
-  printf("nFreq %d glbalItemSizeFreq %d\n",nFreq, globalItemSizeFreq);
-  
-  /* Bake the plan. */
+ 
+  // Bake the plan. 
   ret = clfftBakePlan(planHandleForward, 1, &commandQueue, NULL, NULL);
-
   printf("Bake %d\n", ret);
+  
   ret = clFinish(commandQueue);
   printf("Finish Command Queue %d\n", ret);
 
-  // FFT of PSF
+  // compute item sizes 
+  size_t localItemSize=64;
+	size_t globalItemSize= ceil((N2*N1*N0)/(float)localItemSize)*localItemSize;
+	size_t globalItemSizeFreq = ceil((nFreq+1000)/(float)localItemSize)*localItemSize;
+  printf("nFreq %d glbalItemSizeFreq %d\n",nFreq, globalItemSizeFreq);
+  
+   // FFT of PSF
   ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_psf, &psfFFT, NULL);
 
-  // FFT of estimate 
-	cl_mem estimateFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
-   
-  for (int i=0;i<iterations;i++) {
-   ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_estimate, &estimateFFT, NULL);
+  printf("FFT of PSF %d\n", ret);
 
-    ret = clFinish(commandQueue);
- 
+  for (int i=0;i<iterations;i++) {
+    // FFT of estimate
+    ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_estimate, &estimateFFT, NULL);
+
+    // complex multipy estimate FFT and PSF FFT
     ret = callKernel(kernelComplexMultiply, estimateFFT, psfFFT, estimateFFT, nFreq, commandQueue, globalItemSizeFreq, localItemSize);
 
     // Inverse to get reblurred
     ret = clfftEnqueueTransform(planHandleBackward, CLFFT_BACKWARD, 1, &commandQueue, 0, NULL, NULL, &estimateFFT, &d_reblurred, NULL);
     
-    ret = clFinish(commandQueue);
-    //printf("Finish first inverse FFT %d\n", ret);
-
     // divide observed by reblurred
     ret = callKernel(kernelDiv, d_observed, d_reblurred, d_reblurred, n, commandQueue, globalItemSize, localItemSize);
  
-    // FFT of images/reblurred 
+    // FFT of observed/reblurred 
     ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_reblurred, &estimateFFT, NULL);
-    //printf("Finish second FFT%d\n", ret);
 
     // Correlate above result with PSF 
     ret = callKernel(kernelComplexConjugateMultiply, estimateFFT, psfFFT, estimateFFT, nFreq, commandQueue, globalItemSizeFreq, localItemSize);
   
-    // Inverse to get update factor FFT
+    // Inverse FFT to get update factor 
     ret = clfftEnqueueTransform(planHandleBackward, CLFFT_BACKWARD, 1, &commandQueue, 0, NULL, NULL, &estimateFFT, &d_reblurred, NULL);
 
     // multiply estimate by update factor 
     ret = callKernel(kernelMul, d_estimate, d_reblurred, d_estimate, n, commandQueue, globalItemSize, localItemSize);
     ret = clFinish(commandQueue);
+
     printf("Finished iteration %d\n",i);
+
   }  
-  
-  clReleaseMemObject( estimateFFT );
-  
-  // copy back to host 
-  ret = clEnqueueReadBuffer( commandQueue, d_estimate, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
  
-  // Release OpenCL memory objects. 
-  clReleaseMemObject( d_estimate);
-  clReleaseMemObject( d_observed );
-  clReleaseMemObject( d_psf);
+   // Release OpenCL memory objects. 
   clReleaseMemObject( d_reblurred);
   clReleaseMemObject( psfFFT );
+  clReleaseMemObject( estimateFFT );
 
    // Release the plan. 
    ret = clfftDestroyPlan( &planHandleBackward );
@@ -777,11 +748,65 @@ int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, floa
    // Release clFFT library. 
    clfftTeardown( );
 
+
+}
+
+int deconv(int iterations, size_t N0, size_t N1, size_t N2, float *h_image, float *h_psf, float *h_out, float * normal) {
+
+  cl_platform_id platformId = NULL;
+	cl_device_id deviceID = NULL;
+	cl_uint retNumDevices;
+	cl_uint retNumPlatforms;
+
+  cl_int ret = clGetPlatformIDs(1, &platformId, &retNumPlatforms);
+  printf("\ncreated platform %d \n",ret);
+	
+  ret = clGetDeviceIDs(platformId, CL_DEVICE_TYPE_DEFAULT, 1, &deviceID, &retNumDevices);
+  printf("\nget device IDs %d \n",ret);
+	
+  // Creating context.
+	cl_context context = clCreateContext(NULL, 1, &deviceID, NULL, NULL,  &ret);
+  printf("created context %d\n", ret);
+
+	// Creating command queue
+	cl_command_queue commandQueue = clCreateCommandQueue(context, deviceID, 0, &ret);
+  printf("created command queue %d\n", ret);
+	
+  // create device memory buffers for each array
+	cl_mem d_observed = clCreateBuffer(context, CL_MEM_READ_WRITE, N2*N1*N0 * sizeof(float), NULL, &ret);
+  printf("\ncreate gpu mem for image %d\n", ret);
+	cl_mem d_psf = clCreateBuffer(context, CL_MEM_READ_WRITE, N2*N1*N0 * sizeof(float), NULL, &ret);
+  printf("\ncreate gpu mem for psf %d\n", ret);
+	cl_mem d_estimate = clCreateBuffer(context, CL_MEM_READ_WRITE, N2*N1*N0 * sizeof(float), NULL, &ret);
+  printf("\ncreate variable 3 %d\n", ret);
+ 
+  printf("\nallocated memory\n");
+
+  // Copy lists to memory buffers
+	ret = clEnqueueWriteBuffer(commandQueue, d_observed, CL_TRUE, 0, N2*N1*N0 * sizeof(float), h_image, 0, NULL, NULL);;
+  printf("\ncopy to GPU  %d\n", ret);
+	ret = clEnqueueWriteBuffer(commandQueue, d_psf, CL_TRUE, 0, N2*N1*N0 * sizeof(float), h_psf, 0, NULL, NULL);
+  printf("\ncopy to GPU  %d\n", ret);
+	ret = clEnqueueWriteBuffer(commandQueue, d_estimate, CL_TRUE, 0, N2*N1*N0 * sizeof(float), h_out, 0, NULL, NULL);
+  printf("\ncopy to GPU  %d\n", ret);
+
+  unsigned long n = N0*N1*N2;
+  unsigned long nFreq=(N0/2+1)*N1*N2;
+
+  printf("Call deconv with long pointers\n\n");
+  deconv_long(iterations, N0, N1, N2, (long)d_observed, (long)d_psf, (long)d_estimate, (long)0, (long)context, (long)commandQueue, (long)deviceID); 
+    
+  // copy back to host 
+  ret = clEnqueueReadBuffer( commandQueue, d_estimate, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
+ 
+  // Release OpenCL memory objects. 
+  clReleaseMemObject( d_estimate);
+  clReleaseMemObject( d_observed );
+  clReleaseMemObject( d_psf);
+
    // Release OpenCL working objects.
    clReleaseCommandQueue( commandQueue );
    clReleaseContext( context );
   
   return ret;
 }
-
-
