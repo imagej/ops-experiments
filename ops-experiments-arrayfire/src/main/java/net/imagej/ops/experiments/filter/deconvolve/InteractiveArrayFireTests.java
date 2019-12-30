@@ -3,7 +3,6 @@ package net.imagej.ops.experiments.filter.deconvolve;
 
 import java.io.IOException;
 
-import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imagej.ops.experiments.ConvertersUtility;
 import net.imagej.ops.experiments.testImages.Bars;
@@ -25,16 +24,17 @@ public class InteractiveArrayFireTests<T extends RealType<T> & NativeType<T>> {
 	public static <T extends RealType<T> & NativeType<T>> void main(
 		final String[] args) throws IOException
 	{
-		
+
 		ArrayFireWrapper.load();
-		
+
 		System.out.println("CWD: " + System.getProperty("user.dir"));
 		final String libPathProperty = System.getProperty("java.library.path");
 		System.out.println("Java Library path:" + libPathProperty);
 		System.out.println();
-		System.out.println("System Library path "+System.getenv("LD_LIBRARY_PATH"));
+		System.out.println("System Library path " + System.getenv(
+			"LD_LIBRARY_PATH"));
 		System.out.println();
-		System.out.println("System path "+System.getenv("PATH"));
+		System.out.println("System path " + System.getenv("PATH"));
 		ij.launch(args);
 
 		ij.log().setLevel(2);
@@ -56,8 +56,8 @@ public class InteractiveArrayFireTests<T extends RealType<T> & NativeType<T>> {
 
 		long startTime, endTime;
 
-		RandomAccessibleInterval<FloatType> extendedPSF = Views.zeroMin(ij.op().filter()
-			.padShiftFFTKernel(psfF, imgF));
+		RandomAccessibleInterval<FloatType> extendedPSF = Views.zeroMin(ij.op()
+			.filter().padShiftFFTKernel(psfF, imgF));
 
 		ij.ui().show("padded shifted PSF ", extendedPSF);
 
@@ -86,17 +86,15 @@ public class InteractiveArrayFireTests<T extends RealType<T> & NativeType<T>> {
 
 		ArrayFireWrapper.conv2(imgF.dimension(0), imgF.dimension(1), imgF.dimension(
 			2), fpInput, fpPSF, fpOutput);
-		
+
 		// copy output to array
 		final float[] arrayOutput = new float[paddedSize];
 		fpOutput.get(arrayOutput);
 
-		final Img<FloatType> conv = ArrayImgs.floats(arrayOutput, new long[] {
-			imgF.dimension(0), imgF.dimension(1), imgF.dimension(
-				2) });
-		
-		ij.ui().show(conv);
+		final Img<FloatType> conv = ArrayImgs.floats(arrayOutput, new long[] { imgF
+			.dimension(0), imgF.dimension(1), imgF.dimension(2) });
 
+		ij.ui().show(conv);
 
 	}
 
