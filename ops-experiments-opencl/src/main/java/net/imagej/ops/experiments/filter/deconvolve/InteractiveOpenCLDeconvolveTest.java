@@ -37,46 +37,15 @@ public class InteractiveOpenCLDeconvolveTest<T extends RealType<T> & NativeType<
 		ij.ui().show("img ", imgF);
 		ij.ui().show("psf ", psfF);
 
-		// extend and shift the PSF
-		RandomAccessibleInterval<FloatType> extendedPSF = Views.zeroMin(ij.op()
-			.filter().padShiftFFTKernel(psfF, imgF));
-
-		ij.ui().show("padded shifted PSF ", extendedPSF);
-
 		// get CLIJ
 		CLIJ clij = CLIJ.getInstance();
 
-		long start = System.currentTimeMillis();
-
-		// transfer image and PSF to the GPU
+		// transfer image to the GPU
 		ClearCLBuffer gpuImg = clij.push(imgF);
 
 		ClearCLBuffer gpuEstimate = OpenCLFFTUtility.runDecon(gpuImg, psfF, ij
 			.op());
-
-		/*
-		ClearCLBuffer gpuPSF= clij.push(extendedPSF);
 		
-		// transfer another copy of the image to the GPU to use as the initial value of the estimate
-		ClearCLBuffer gpuEstimate = clij.push(imgF);
-		
-		// Use a hack to get long pointers to the CL Buffers, context, queue and device
-		// (TODO: Use a more sensible approach once Robert H's pull request is released)
-		long longPointerImg=OpenCLDeconvolveUtility.hackPointer((NativePointerObject)(gpuImg.getPeerPointer().getPointer()));
-		long longPointerPSF=OpenCLDeconvolveUtility.hackPointer((NativePointerObject)(gpuPSF.getPeerPointer().getPointer()));
-		long longPointerEstimate=OpenCLDeconvolveUtility.hackPointer((NativePointerObject)(gpuEstimate.getPeerPointer().getPointer()));
-		long l_context= OpenCLDeconvolveUtility.hackPointer((NativePointerObject)(clij.getClearCLContext().getPeerPointer().getPointer()));
-		long l_queue= OpenCLDeconvolveUtility.hackPointer((NativePointerObject)(clij.getClearCLContext().getDefaultQueue().getPeerPointer().getPointer()));
-		long l_device = OpenCLDeconvolveUtility.hackPointer((NativePointerObject)clij.getClearCLContext().getDevice().getPeerPointer().getPointer());
-		
-		// call the decon wrapper, the estimate will be updated with 100 iterations of RL 
-		OpenCLWrapper.deconv_long(100, imgF.dimension(0), imgF.dimension(1), imgF.dimension(2), longPointerImg, longPointerPSF, longPointerEstimate, longPointerImg, l_context, l_queue, l_device); 
-		
-		long finish= System.currentTimeMillis();
-		
-		System.out.println("OpenCL Decon time "+(finish-start));
-		 */
-
 		// show the result
 		clij.show(gpuEstimate, "GPU Decon Result");
 
