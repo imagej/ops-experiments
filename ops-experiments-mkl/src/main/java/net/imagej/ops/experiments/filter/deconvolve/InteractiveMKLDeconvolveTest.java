@@ -24,7 +24,11 @@ public class InteractiveMKLDeconvolveTest<T extends RealType<T> & NativeType<T>>
 
 		System.out.println("CWD: " + System.getProperty("user.dir"));
 		final String libPathProperty = System.getProperty("java.library.path");
-		System.out.println("Lib path:" + libPathProperty);
+		System.out.println("Java Library Path:" + libPathProperty);
+		System.out.println();
+		System.out.println("LD_LIBRARY_PATH:" + System.getenv("PATH"));
+		System.out.println();
+		System.out.println("System path"+System.getenv("PATH"));
 
 		ij.launch(args);
 
@@ -57,18 +61,19 @@ public class InteractiveMKLDeconvolveTest<T extends RealType<T> & NativeType<T>>
 
 		deconvolver.compute(imgF, deconvolved);
 
-/*
-		final RandomAccessibleInterval<FloatType> outputMKL =
-			(RandomAccessibleInterval<FloatType>) ij.op().run(
-				MKLRichardsonLucyOp.class, imgF, psfF, new long[] { 32, 32, 50 }, null,
-				null, null, false, iterations, true);
-*/
+
+//		final RandomAccessibleInterval<FloatType> outputMKL =
+//			(RandomAccessibleInterval<FloatType>) ij.op().run(
+//				MKLRichardsonLucyOp.class, imgF, psfF, new long[] { 32, 32, 50 }, null,
+//				null, null, false, iterations, true);
+
 		endTime = System.currentTimeMillis();
 
 		ij.log().info("Total execution time MKL (decon+overhead) is: " + (endTime -
 			startTime));
 
 		ij.ui().show("MKL op deconvolved", deconvolved);
+	
 	}
 
 }

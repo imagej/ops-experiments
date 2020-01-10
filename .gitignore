@@ -12,6 +12,9 @@ target/
 /.metadata
 /.recommenders
 
+# vscode #
+.vscode/
+
 # binaries #
 *.class
 *.exp
@@ -20,6 +23,7 @@ target/
 *.obj
 *.o
 *.so
+*.so.*
 *.a
 
 # java cpp
@@ -35,6 +39,7 @@ compile_commands.json
 CTestTestfile.cmake
 
 bin/
+build/
 
 __pycache__/
 
