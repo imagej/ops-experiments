@@ -6,7 +6,7 @@
 from net.imglib2.type.numeric.real import FloatType
 from net.imglib2.view import Views;
 from net.imagej.ops.experiments import ConvertersUtility
-from net.imagej.ops.experiments.filter.deconvolution import OpenCLDeconvolveUtility
+from net.imagej.ops.experiments.filter.deconvolve import OpenCLFFTUtility
 
 from java.lang import System
 
