@@ -25,7 +25,7 @@ gpuImg= clij.push(imgF);
 # a java RAI, (there needs to be some preprocessing done on the PSF
 # and runDecon does that on the CPU in java)
 start = System.currentTimeMillis();
-gpuEstimate = OpenCLDeconvolveUtility.runDecon(gpuImg, psfF, ops);
+gpuEstimate = OpenCLFFTUtility.runDecon(gpuImg, psfF, ops);
 finish = System.currentTimeMillis();
 
 print('CLIJ decon time ', (finish-start));
