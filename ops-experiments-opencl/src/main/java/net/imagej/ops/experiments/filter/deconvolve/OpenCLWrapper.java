@@ -6,8 +6,12 @@ import org.bytedeco.javacpp.annotation.Platform;
 import org.bytedeco.javacpp.annotation.Properties;
 
 @Properties(value = { @Platform(include = "opencldeconv.h", link = {
-	"opencldeconv", "clFFT" }), @Platform(value = "windows-x86_64", linkpath = {
-		"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/lib/x64/", "/opt/clFFT/clFFT-2.12.2-Linux-x64/lib64/" }),
+	"opencldeconv", "clFFT" }), 
+	@Platform(value = "windows-x86_64", 
+	linkpath = {"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/lib/x64/", "C:/Users/bnort/OpenCL/clFFT-2.12.2-Windows-x64/lib64/import/"},
+	preloadpath = {"C:/Users/bnort/OpenCL/clFFT-2.12.2-Windows-x64/bin/"},
+	preload = {"clFFT" }
+			),
 	@Platform(value = "linux-x86_64",
 		includepath = "/usr/local/cuda-10.0/include/", linkpath = {
 			"/usr/local/cuda-10.0/lib64/" }) })
