@@ -25,8 +25,7 @@ const char * programString =                                       "\n" \
 "    if (id < n)                                                 \n" \
 "        c[id] = a[id] + b[id];                                  \n" \
 "}                                                               \n" \
-                                                                "\n" \ 
-                                      "\n" \
+"\n" \
 "#pragma OPENCL EXTENSION cl_khr_fp64 : enable                    \n" \
 "__kernel void vecComplexMultiply(  __global float *a,                       \n" \
 "                       __global float *b,                       \n" \
