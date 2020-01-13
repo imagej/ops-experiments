@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <CL/cl.h>
+#include "CL/cl.h"
 #include "clFFT.h"
 #include <math.h>
 #include "opencldeconv.h"
@@ -16,7 +16,7 @@ const char * programString =                                       "\n" \
 "__kernel void vecAdd(  __global float *a,                       \n" \
 "                       __global float *b,                       \n" \
 "                       __global float *c,                       \n" \
-"                       const unsigned long n)                    \n" \
+"                       const unsigned int n)                    \n" \
 "{                                                               \n" \
 "    //Get our global thread ID                                  \n" \
 "    int id = get_global_id(0);                                  \n" \
@@ -30,7 +30,7 @@ const char * programString =                                       "\n" \
 "__kernel void vecComplexMultiply(  __global float *a,                       \n" \
 "                       __global float *b,                       \n" \
 "                       __global float *c,                       \n" \
-"                       const unsigned long n)                    \n" \
+"                       const unsigned int n)                    \n" \
 "{                                                               \n" \
 "    //Get our global thread ID                                  \n" \
 "    int id = get_global_id(0);                                  \n" \
@@ -47,7 +47,7 @@ const char * programString =                                       "\n" \
 "__kernel void vecComplexConjugateMultiply(  __global float *a,                       \n" \
 "                       __global float *b,                       \n" \
 "                       __global float *c,                       \n" \
-"                       const unsigned long n)                    \n" \
+"                       const unsigned int n)                    \n" \
 "{                                                               \n" \
 "    //Get our global thread ID                                  \n" \
 "    int id = get_global_id(0);                                  \n" \
@@ -64,7 +64,7 @@ const char * programString =                                       "\n" \
 "__kernel void vecDiv(  __global float *a,                       \n" \
 "                       __global float *b,                       \n" \
 "                       __global float *c,                       \n" \
-"                       const unsigned long n)                    \n" \
+"                       const unsigned int n)                    \n" \
 "{                                                               \n" \
 "    //Get our global thread ID                                  \n" \
 "    int id = get_global_id(0);                                  \n" \
@@ -83,7 +83,7 @@ const char * programString =                                       "\n" \
 "__kernel void vecMul(  __global float *a,                       \n" \
 "                       __global float *b,                       \n" \
 "                       __global float *c,                       \n" \
-"                       const unsigned long n)                    \n" \
+"                       const unsigned int n)                    \n" \
 "{                                                               \n" \
 "    //Get our global thread ID                                  \n" \
 "    int id = get_global_id(0);                                  \n" \
@@ -98,18 +98,42 @@ const char * programString =                                       "\n" \
 
                                                                 "\n" ;
 
-cl_int callKernel(cl_kernel kernel, cl_mem in1, cl_mem in2, cl_mem out, unsigned long n, cl_command_queue commandQueue, size_t globalItemSize, size_t localItemSize) {
+cl_int callKernel(cl_kernel kernel, cl_mem in1, cl_mem in2, cl_mem out, const unsigned int n, cl_command_queue commandQueue, size_t globalItemSize, size_t localItemSize) {
    // Set arguments for complex multiply kernel
-	cl_int ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&in1);	
-  //printf("\nset variable 1 %d\n", ret);
+	cl_int ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&in1);
+
+  if (ret!=0) {	
+    printf("\nset variable 1 %d\n", ret);
+    return ret;
+  }
+
 	ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&in2);	
-  //printf("\nset variable 2 %d\n", ret);
+   
+  if (ret!=0) {	
+    printf("\nset variable 2 %d\n", ret);
+    return ret;
+  }
+
 	ret = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&out);	
-  //printf("\nset variable 3 %d\n", ret);
-  ret = clSetKernelArg(kernel, 3, sizeof(n), &n);	
-  //printf("\nset variable 4 %d\n", ret);
+  if (ret!=0) {	
+    printf("\nset variable 3 %d\n", ret);
+    return ret;
+  }
+
+  ret = clSetKernelArg(kernel, 3, sizeof(unsigned int), &n);	
+  
+  if (ret!=0) {	
+    printf("\nset variable 4 %d\n", ret);
+    return ret;
+  }
   
   ret = clEnqueueNDRangeKernel(commandQueue, kernel, 1, NULL, &globalItemSize, &localItemSize, 0, NULL, NULL);	
+  
+  if (ret!=0) {	
+    printf("\nEnqueue Kernel %d\n", ret);
+    return ret;
+  }
+
   ret = clFinish(commandQueue);
 
   return ret;
@@ -707,32 +731,43 @@ int deconv_long(int iterations, size_t N0, size_t N1, size_t N2, long l_observed
   printf("FFT of PSF %d\n", ret);
 
   for (int i=0;i<iterations;i++) {
-    // FFT of estimate
-    ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_estimate, &estimateFFT, NULL);
+      // FFT of estimate
+      ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_estimate, &estimateFFT, NULL);
+      //printf("fft1 %d\n", ret);
 
-    // complex multipy estimate FFT and PSF FFT
-    ret = callKernel(kernelComplexMultiply, estimateFFT, psfFFT, estimateFFT, nFreq, commandQueue, globalItemSizeFreq, localItemSize);
+      // complex multipy estimate FFT and PSF FFT
+      ret = callKernel(kernelComplexMultiply, estimateFFT, psfFFT, estimateFFT, nFreq, commandQueue, globalItemSizeFreq, localItemSize);
+      //printf("kernel complex %d\n", ret);
+      
+      // Inverse to get reblurred
+      ret = clfftEnqueueTransform(planHandleBackward, CLFFT_BACKWARD, 1, &commandQueue, 0, NULL, NULL, &estimateFFT, &d_reblurred, NULL);
+      //printf("fft2 %d\n", ret);
+      
+      // divide observed by reblurred
+      ret = callKernel(kernelDiv, d_observed, d_reblurred, d_reblurred, n, commandQueue, globalItemSize, localItemSize);
+      
+      if (ret!=0) {
+        printf("kernel div %d\n", ret);
+      }
+      
+      // FFT of observed/reblurred 
+      ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_reblurred, &estimateFFT, NULL);
+      //printf("fft %d\n", ret);
+      
+      // Correlate above result with PSF 
+      ret = callKernel(kernelComplexConjugateMultiply, estimateFFT, psfFFT, estimateFFT, nFreq, commandQueue, globalItemSizeFreq, localItemSize);
+      printf("correlate %d\n", ret);
+      
+      // Inverse FFT to get update factor 
+      ret = clfftEnqueueTransform(planHandleBackward, CLFFT_BACKWARD, 1, &commandQueue, 0, NULL, NULL, &estimateFFT, &d_reblurred, NULL);
 
-    // Inverse to get reblurred
-    ret = clfftEnqueueTransform(planHandleBackward, CLFFT_BACKWARD, 1, &commandQueue, 0, NULL, NULL, &estimateFFT, &d_reblurred, NULL);
-    
-    // divide observed by reblurred
-    ret = callKernel(kernelDiv, d_observed, d_reblurred, d_reblurred, n, commandQueue, globalItemSize, localItemSize);
- 
-    // FFT of observed/reblurred 
-    ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_reblurred, &estimateFFT, NULL);
+      // multiply estimate by update factor 
+      ret = callKernel(kernelMul, d_estimate, d_reblurred, d_estimate, n, commandQueue, globalItemSize, localItemSize);
+      //printf("update %d\n", ret);
+      
+      ret = clFinish(commandQueue);
 
-    // Correlate above result with PSF 
-    ret = callKernel(kernelComplexConjugateMultiply, estimateFFT, psfFFT, estimateFFT, nFreq, commandQueue, globalItemSizeFreq, localItemSize);
-  
-    // Inverse FFT to get update factor 
-    ret = clfftEnqueueTransform(planHandleBackward, CLFFT_BACKWARD, 1, &commandQueue, 0, NULL, NULL, &estimateFFT, &d_reblurred, NULL);
-
-    // multiply estimate by update factor 
-    ret = callKernel(kernelMul, d_estimate, d_reblurred, d_estimate, n, commandQueue, globalItemSize, localItemSize);
-    ret = clFinish(commandQueue);
-
-    printf("Finished iteration %d\n",i);
+      printf("Finished iteration %d\n",i);
 
   }  
  
