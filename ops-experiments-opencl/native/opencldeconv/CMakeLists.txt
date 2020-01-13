@@ -1,9 +1,9 @@
 find_package(OpenCL)
 
-if (WIN64)
-FIND_PATH(OPENCL_INCLUDE_DIR ENV{OPENCL_INCLUDE_DIR} [DOC "Open CL include path"])
-include_directories( ${OPENCL_INCLUDE_DIR} )
-endif (WIN64)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    FIND_PATH(OPENCL_INCLUDE_DIR ENV{OPENCL_INCLUDE_DIR} [DOC "Open CL include path"])
+    include_directories( ${OPENCL_INCLUDE_DIR} )
+endif()
 
 # find clFFT path
 FIND_PATH(CLFFT_LIBRARY_DIR $ENV{CLFFT_LIBRARY_DIR} [DOC "CLFFT library path"])
