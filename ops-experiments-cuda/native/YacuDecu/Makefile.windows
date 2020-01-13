@@ -2,7 +2,7 @@ YacuDecu.lib: deconv.obj
 	nvcc -lib -Xlinker=/EXPORT:deconv_device -Xlinker=/EXPORT:conv_device -o YacuDecu.lib deconv.obj -lcufft
 
 deconv.obj: 
-	nvcc -Xcompiler=/MD -O3 -c -o deconv.obj ./src/deconv.cu
+	nvcc -Xcompiler=/MD -O3 -c -o deconv.obj ../src/deconv.cu
 	
 install:
 	mv YacuDecu.lib ../../lib/
