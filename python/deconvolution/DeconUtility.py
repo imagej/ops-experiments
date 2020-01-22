@@ -18,7 +18,7 @@ def subtractBackground(img, percentOfMean):
 
 def getPadSize(img, psf):
     paddedSize=[];
-    for i in range(3):
+    for i in range(len(img.shape)):
         paddedSize.append(img.shape[i]+psf.shape[i])
         
     print(paddedSize)
