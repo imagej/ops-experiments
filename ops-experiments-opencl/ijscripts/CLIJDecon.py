@@ -13,7 +13,9 @@ from java.lang import System
 # init CLIJ and GPU
 from net.haesleinhuepf.clij import CLIJ;
 
-clij = CLIJ.getInstance();
+print CLIJ.getAvailableDeviceNames();
+
+clij = CLIJ.getInstance("RTX");
 
 psfF=ops.convert().float32(psf);
 imgF=ops.convert().float32(data);
