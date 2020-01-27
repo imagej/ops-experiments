@@ -28,7 +28,7 @@ case $PLATFORM in
 		       -DCMAKE_BUILD_TYPE=Release \
                -DCMAKE_INSTALL_PREFIX="../../" \
                -DOPENCL_INCLUDE_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/include/" \
-		       -DCLFFT_LIBRARY_DIR="C:/Users/bnort/OpenCL/clFFT-2.12.2-Windows-x64/lib64/import/" .. 
+		       -DCLFFT_LIBRARY_DIR="C:/OpenCL/clFFT-2.12.2-Windows-x64/lib64/import/" .. 
         nmake
         nmake install
         ;;
