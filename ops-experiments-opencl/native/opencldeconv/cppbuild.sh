@@ -16,7 +16,7 @@ case $PLATFORM in
                -DCMAKE_INSTALL_PREFIX="../.." \
                -DCMAKE_CXX_COMPILER="/usr/bin/g++" \
                -DCMAKE_CUDA_HOST_COMPILER="/usr/bin/g++" \
-		-DCLFFT_LIBRARY_DIR="/home/bnorthan/array-fire/clFFT-2.12.2-Linux-x64/lib64/" .. 
+		-DCLFFT_LIBRARY_DIR="/opt/OpenCL/clFFT-2.12.2-Linux-x64/lib64/" .. 
         make
         make install
         ;;
