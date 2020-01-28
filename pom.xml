@@ -14,11 +14,12 @@
 		<module>ops-experiments-common</module>
 		<module>ops-experiments-cuda</module>
 		<module>ops-experiments-mkl</module>
+		<module>ops-experiments-arrayfire</module>
+		<module>ops-experiments-clij</module>
+		<module>ops-experiments-opencl</module>
 		<module>ops-experiments-main</module>
 		<module>ops-experiments-tensorflow</module>
 		<module>ops-experiments-imglib2cache</module>
-		<module>ops-experiments-opencl</module>
-		<module>ops-experiments-arrayfire</module>
 	</modules>
 
 	<groupId>net.imagej</groupId>
