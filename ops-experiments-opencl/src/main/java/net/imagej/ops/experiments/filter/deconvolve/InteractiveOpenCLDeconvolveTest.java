@@ -39,6 +39,8 @@ public class InteractiveOpenCLDeconvolveTest<T extends RealType<T> & NativeType<
 
 		// get CLIJ
 		CLIJ clij = CLIJ.getInstance();
+		
+		System.out.println(CLIJ.getAvailableDeviceNames());
 
 		// transfer image to the GPU
 		ClearCLBuffer gpuImg = clij.push(imgF);
