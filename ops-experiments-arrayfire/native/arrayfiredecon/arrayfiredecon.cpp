@@ -9,7 +9,7 @@ void test() {
   printf("Test arrayfire entry point\n");
 }
 
-int arrayTest( int n, float * f) {
+void arrayTest( int n, float * f) {
     
     af::array a = af::array(n,f);
     // Sum the values and copy the result to the CPU:

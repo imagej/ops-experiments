@@ -26,7 +26,14 @@ case $PLATFORM in
         echo "TODO"
         ;;
     windows-x86_64)
-        echo "TODO"
+   $CMAKE -G"NMake Makefiles" \
+		-DCMAKE_BUILD_TYPE=Release \
+               -DCMAKE_INSTALL_PREFIX="../.." \
+     	-DMKL_LIBRARY_DIR="C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64_win" \
+		-DMKL_INCLUDE_DIR="C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/include" \
+		-DOMP_LIBRARY_DIR= "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64_win" ..
+        nmake
+        nmake install 
         ;;
     *)
         echo "Error: Platform \"$PLATFORM\" is not supported"

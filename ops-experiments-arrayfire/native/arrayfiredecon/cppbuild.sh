@@ -21,7 +21,11 @@ case $PLATFORM in
         echo "TODO"
         ;;
     windows-x86_64)
-        echo "TODO"
+        $CMAKE -G"NMake Makefiles" \
+		-DCMAKE_BUILD_TYPE=Release \
+               -DCMAKE_INSTALL_PREFIX="../.." .. 
+        nmake
+        nmake install
         ;;
     *)
         echo "Error: Platform \"$PLATFORM\" is not supported"
