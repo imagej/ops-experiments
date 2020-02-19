@@ -8,6 +8,7 @@ import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.imagej.ImageJ;
 import net.imagej.ops.experiments.testImages.Bars;
 import net.imagej.ops.experiments.testImages.DeconvolutionTestData;
+import net.imglib2.FinalDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -39,15 +40,24 @@ public class InteractiveOpenCLDeconvolveTest<T extends RealType<T> & NativeType<
 
 		// get CLIJ
 		CLIJ clij = CLIJ.getInstance();
-		
+
 		System.out.println(CLIJ.getAvailableDeviceNames());
 
-		// transfer image to the GPU
-		ClearCLBuffer gpuImg = clij.push(imgF);
+		// to test crop to a non-supported size
+		imgF = Views.zeroMin(Views.interval(imgF, new long[] { 0, 0, 0 },
+			new long[] { 211, 203, 99 }));
 
-		ClearCLBuffer gpuEstimate = OpenCLFFTUtility.runDecon(gpuImg, psfF, ij
-			.op());
-		
+		// now call the function that pads to a supported size and pushes to the GPU
+		ClearCLBuffer gpuImg = OpenCLFFTUtility.padInputFFTAndPush(imgF, imgF, ij
+			.op(), clij);
+
+		// now call the function that pads to a supported size and pushes to the GPU 
+		ClearCLBuffer gpuPSF = OpenCLFFTUtility.padKernelFFTAndPush(psfF,
+			new FinalDimensions(gpuImg.getDimensions()), ij.op(), clij);
+
+		// run the decon
+		ClearCLBuffer gpuEstimate = OpenCLFFTUtility.runDecon(gpuImg, gpuPSF);
+
 		// show the result
 		clij.show(gpuEstimate, "GPU Decon Result");
 
