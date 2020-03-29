@@ -6,6 +6,7 @@ import net.haesleinhuepf.clij.clearcl.ClearCLBuffer;
 import net.haesleinhuepf.clij.coremem.enums.NativeTypeEnum;
 import net.imagej.ops.OpService;
 import net.imagej.ops.filter.pad.DefaultPadInputFFT;
+import net.imglib2.Dimensions;
 import net.imglib2.FinalDimensions;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
@@ -22,6 +23,15 @@ import org.jocl.NativePointerObject;
 
 public class OpenCLFFTUtility {
 
+	/**
+	 * run CLIJ FFT on an RAI and return output as RAI (mostly used for testing
+	 * purposes)
+	 * 
+	 * @param img
+	 * @param reflectAndCenter - if true reflect and center for visualization
+	 * @param ops
+	 * @return
+	 */
 	public static RandomAccessibleInterval<ComplexFloatType> runFFT(
 		RandomAccessibleInterval<FloatType> img, boolean reflectAndCenter,
 		OpService ops)
@@ -62,6 +72,68 @@ public class OpenCLFFTUtility {
 		return resultComplex;
 	}
 
+	/**
+	 * @param in - RAI to pad
+	 * @param paddedDimensions - dimensions to pad to (dimensions will be at least
+	 *          this big, but may be bigger if the next supported FFT size is
+	 *          bigger)
+	 * @param ops
+	 * @param clij
+	 * @return
+	 */
+	public static ClearCLBuffer padInputFFTAndPush(
+		RandomAccessibleInterval<FloatType> in, Dimensions paddedDimensions,
+		OpService ops, CLIJ clij)
+	{
+		System.out.println(in.dimension(0) + " " + in.dimension(1) + " " + in
+			.dimension(2));
+
+		RandomAccessibleInterval<FloatType> extended =
+			(RandomAccessibleInterval<FloatType>) ops.run(DefaultPadInputFFT.class,
+				in, paddedDimensions, false);
+
+		System.out.println(extended.dimension(0) + " " + extended.dimension(1) +
+			" " + extended.dimension(2));
+
+		return clij.push(extended);
+
+	}
+
+	/**
+	 * @param psf
+	 * @param paddedDimensions - dimensions to pad to (dimensions will be at least
+	 *          this big, but may be bigger if the next supported FFT size is
+	 *          bigger)
+	 * @param ops
+	 * @param clij
+	 * @return
+	 */
+	public static ClearCLBuffer padKernelFFTAndPush(
+		RandomAccessibleInterval<FloatType> psf, Dimensions paddedDimensions,
+		OpService ops, CLIJ clij)
+	{
+
+		// extend and shift the PSF
+		RandomAccessibleInterval<FloatType> extendedPSF = Views.zeroMin(ops.filter()
+			.padShiftFFTKernel(psf, paddedDimensions));
+
+		System.out.println("Extended PSF " + extendedPSF.dimension(0) + " " +
+			extendedPSF.dimension(1) + " " + extendedPSF.dimension(2));
+
+		long start = System.currentTimeMillis();
+
+		// transfer PSF to the GPU and return
+		return clij.push(extendedPSF);
+
+	}
+
+	/**
+	 * Run FFT on a CLBuffer
+	 * 
+	 * @param gpuImg input CLBuffer (needs to be pre-extended to an FFT friendly
+	 *          size this can be done by using the padInputAndPush function)
+	 * @return - output FFT as CLBuffer
+	 */
 	public static ClearCLBuffer runFFT(ClearCLBuffer gpuImg) {
 		CLIJ clij = CLIJ.getInstance();
 
@@ -89,6 +161,63 @@ public class OpenCLFFTUtility {
 		return gpuFFT;
 	}
 
+	/**
+	 * run Richardson Lucy deconvolution 
+	 * 
+	 * @param gpuImg - need to prepad to supported FFT size (see padInputFFTAndPush)
+	 * @param gpuPSF - need to prepad to supported FFT size (see padKernelFFTAndPush)
+	 * @return
+	 */
+	public static ClearCLBuffer runDecon(ClearCLBuffer gpuImg,
+		ClearCLBuffer gpuPSF)
+	{
+
+		// get CLIJ
+		CLIJ clij = CLIJ.getInstance();
+
+		long start = System.currentTimeMillis();
+
+		// create another copy of the image to use as the initial value
+		ClearCLBuffer gpuEstimate = clij.create(gpuImg);
+		clij.op().copy(gpuImg, gpuEstimate);
+
+		// Use a hack to get long pointers to the CL Buffers, context, queue and
+		// device
+		// (TODO: Use a more sensible approach once Robert H's pull request is
+		// released)
+		long longPointerImg = hackPointer((NativePointerObject) (gpuImg
+			.getPeerPointer().getPointer()));
+		long longPointerPSF = hackPointer((NativePointerObject) (gpuPSF
+			.getPeerPointer().getPointer()));
+		long longPointerEstimate = hackPointer((NativePointerObject) (gpuEstimate
+			.getPeerPointer().getPointer()));
+		long l_context = hackPointer((NativePointerObject) (clij.getClearCLContext()
+			.getPeerPointer().getPointer()));
+		long l_queue = hackPointer((NativePointerObject) (clij.getClearCLContext()
+			.getDefaultQueue().getPeerPointer().getPointer()));
+		long l_device = hackPointer((NativePointerObject) clij.getClearCLContext()
+			.getDevice().getPeerPointer().getPointer());
+
+		// call the decon wrapper (100 iterations of RL)
+		OpenCLWrapper.deconv_long(100, gpuImg.getDimensions()[0], gpuImg
+			.getDimensions()[1], gpuImg.getDimensions()[2], longPointerImg,
+			longPointerPSF, longPointerEstimate, longPointerImg, l_context, l_queue,
+			l_device);
+
+		long finish = System.currentTimeMillis();
+
+		System.out.println("OpenCL Decon time " + (finish - start));
+
+		return gpuEstimate;
+	}
+
+	/**
+	 * Run Richardson Lucy Deconvolution
+	 * @param gpuImg
+	 * @param psf
+	 * @param ops
+	 * @return
+	 */
 	public static ClearCLBuffer runDecon(ClearCLBuffer gpuImg,
 		RandomAccessibleInterval<FloatType> psf, OpService ops)
 	{
@@ -97,6 +226,8 @@ public class OpenCLFFTUtility {
 		RandomAccessibleInterval<FloatType> extendedPSF = Views.zeroMin(ops.filter()
 			.padShiftFFTKernel(psf, new FinalDimensions(gpuImg.getDimensions())));
 
+		System.out.println("Extended PSF " + extendedPSF.dimension(0) + " " +
+			extendedPSF.dimension(1) + " " + extendedPSF.dimension(2));
 		// get CLIJ
 		CLIJ clij = CLIJ.getInstance();
 
