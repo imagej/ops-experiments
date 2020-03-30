@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>net.haesleinhuepf</groupId>
 			<artifactId>clij_</artifactId>
-			<version>1.4.3</version>
+			<version>1.5.7</version>
      	</dependency>
 
 	

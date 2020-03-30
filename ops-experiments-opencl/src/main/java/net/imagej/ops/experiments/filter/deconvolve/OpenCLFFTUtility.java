@@ -145,14 +145,14 @@ public class OpenCLFFTUtility {
 		ClearCLBuffer gpuFFT = clij.create(fftDim, NativeTypeEnum.Float);
 
 		// use a hack to get the long pointers to in, out, context and queue.
-		long l_in = hackPointer((NativePointerObject) (gpuImg.getPeerPointer()
-			.getPointer()));
-		long l_out = hackPointer((NativePointerObject) (gpuFFT.getPeerPointer()
-			.getPointer()));
-		long l_context = hackPointer((NativePointerObject) (clij.getClearCLContext()
-			.getPeerPointer().getPointer()));
-		long l_queue = hackPointer((NativePointerObject) (clij.getClearCLContext()
-			.getDefaultQueue().getPeerPointer().getPointer()));
+		long l_in = ((NativePointerObject) (gpuImg.getPeerPointer()
+			.getPointer())).getNativePointer();
+		long l_out = ((NativePointerObject) (gpuFFT.getPeerPointer()
+			.getPointer())).getNativePointer();
+		long l_context = ((NativePointerObject) (clij.getClearCLContext()
+			.getPeerPointer().getPointer())).getNativePointer();
+		long l_queue = ((NativePointerObject) (clij.getClearCLContext()
+			.getDefaultQueue().getPeerPointer().getPointer())).getNativePointer();
 
 		// call the native code that runs the FFT
 		OpenCLWrapper.fft2d_long((long) (gpuImg.getWidth()), gpuImg.getHeight(),
@@ -185,18 +185,18 @@ public class OpenCLFFTUtility {
 		// device
 		// (TODO: Use a more sensible approach once Robert H's pull request is
 		// released)
-		long longPointerImg = hackPointer((NativePointerObject) (gpuImg
-			.getPeerPointer().getPointer()));
-		long longPointerPSF = hackPointer((NativePointerObject) (gpuPSF
-			.getPeerPointer().getPointer()));
-		long longPointerEstimate = hackPointer((NativePointerObject) (gpuEstimate
-			.getPeerPointer().getPointer()));
-		long l_context = hackPointer((NativePointerObject) (clij.getClearCLContext()
-			.getPeerPointer().getPointer()));
-		long l_queue = hackPointer((NativePointerObject) (clij.getClearCLContext()
-			.getDefaultQueue().getPeerPointer().getPointer()));
-		long l_device = hackPointer((NativePointerObject) clij.getClearCLContext()
-			.getDevice().getPeerPointer().getPointer());
+		long longPointerImg = ((NativePointerObject) (gpuImg
+			.getPeerPointer().getPointer())).getNativePointer();
+		long longPointerPSF = ((NativePointerObject) (gpuPSF
+			.getPeerPointer().getPointer())).getNativePointer();
+		long longPointerEstimate = ((NativePointerObject) (gpuEstimate
+			.getPeerPointer().getPointer())).getNativePointer();
+		long l_context = ((NativePointerObject) (clij.getClearCLContext()
+			.getPeerPointer().getPointer())).getNativePointer();
+		long l_queue = ((NativePointerObject) (clij.getClearCLContext()
+			.getDefaultQueue().getPeerPointer().getPointer())).getNativePointer();
+		long l_device = ((NativePointerObject) clij.getClearCLContext()
+			.getDevice().getPeerPointer().getPointer()).getNativePointer();
 
 		// call the decon wrapper (100 iterations of RL)
 		OpenCLWrapper.deconv_long(100, gpuImg.getDimensions()[0], gpuImg
@@ -244,18 +244,18 @@ public class OpenCLFFTUtility {
 		// device
 		// (TODO: Use a more sensible approach once Robert H's pull request is
 		// released)
-		long longPointerImg = hackPointer((NativePointerObject) (gpuImg
-			.getPeerPointer().getPointer()));
-		long longPointerPSF = hackPointer((NativePointerObject) (gpuPSF
-			.getPeerPointer().getPointer()));
-		long longPointerEstimate = hackPointer((NativePointerObject) (gpuEstimate
-			.getPeerPointer().getPointer()));
-		long l_context = hackPointer((NativePointerObject) (clij.getClearCLContext()
-			.getPeerPointer().getPointer()));
-		long l_queue = hackPointer((NativePointerObject) (clij.getClearCLContext()
-			.getDefaultQueue().getPeerPointer().getPointer()));
-		long l_device = hackPointer((NativePointerObject) clij.getClearCLContext()
-			.getDevice().getPeerPointer().getPointer());
+		long longPointerImg = ((NativePointerObject) (gpuImg
+			.getPeerPointer().getPointer())).getNativePointer();
+		long longPointerPSF = ((NativePointerObject) (gpuPSF
+			.getPeerPointer().getPointer())).getNativePointer();
+		long longPointerEstimate = ((NativePointerObject) (gpuEstimate
+			.getPeerPointer().getPointer())).getNativePointer();
+		long l_context = ((NativePointerObject) (clij.getClearCLContext()
+			.getPeerPointer().getPointer())).getNativePointer();
+		long l_queue = ((NativePointerObject) (clij.getClearCLContext()
+			.getDefaultQueue().getPeerPointer().getPointer())).getNativePointer();
+		long l_device = ((NativePointerObject) clij.getClearCLContext()
+			.getDevice().getPeerPointer().getPointer()).getNativePointer();
 
 		// call the decon wrapper (100 iterations of RL)
 		OpenCLWrapper.deconv_long(100, gpuImg.getDimensions()[0], gpuImg
@@ -268,14 +268,6 @@ public class OpenCLFFTUtility {
 		System.out.println("OpenCL Decon time " + (finish - start));
 
 		return gpuEstimate;
-	}
-
-	static long hackPointer(NativePointerObject pointer) {
-
-		String splitString = pointer.toString().split("\\[")[1];
-		String hack = splitString.substring(0, splitString.length() - 1);
-
-		return Long.decode(hack);
 	}
 
 	static Img<ComplexFloatType> copyAsComplex(
