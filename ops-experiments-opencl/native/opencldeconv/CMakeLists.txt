@@ -8,7 +8,7 @@ endif()
 # find clFFT path
 FIND_PATH(CLFFT_LIBRARY_DIR $ENV{CLFFT_LIBRARY_DIR} [DOC "CLFFT library path"])
 
-link_directories(../../native/lib/ ${CLFFT_LIBRARY_DIR})
+link_directories(/Users/haase/code/ops-experiments/ops-experiments-opencl/native ${CLFFT_LIBRARY_DIR})
 add_library(opencldeconv SHARED opencldeconv.cpp)
 target_link_libraries(opencldeconv clFFT ${OpenCL_LIBRARY})
 
