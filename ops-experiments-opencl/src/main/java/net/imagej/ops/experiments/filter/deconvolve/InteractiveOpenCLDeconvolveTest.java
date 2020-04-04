@@ -56,7 +56,8 @@ public class InteractiveOpenCLDeconvolveTest<T extends RealType<T> & NativeType<
 			new FinalDimensions(gpuImg.getDimensions()), ij.op(), clij);
 
 		// run the decon
-		ClearCLBuffer gpuEstimate = OpenCLFFTUtility.runDecon(gpuImg, gpuPSF);
+		ClearCLBuffer gpuEstimate = clij.create(gpuImg);
+		OpenCLFFTUtility.runDecon(clij, gpuImg, gpuPSF, gpuEstimate);
 
 		// show the result
 		clij.show(gpuEstimate, "GPU Decon Result");
