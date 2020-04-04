@@ -168,17 +168,14 @@ public class OpenCLFFTUtility {
 	 * @param gpuPSF - need to prepad to supported FFT size (see padKernelFFTAndPush)
 	 * @return
 	 */
-	public static ClearCLBuffer runDecon(ClearCLBuffer gpuImg,
-		ClearCLBuffer gpuPSF)
+	public static ClearCLBuffer runDecon(CLIJ clij, ClearCLBuffer gpuImg,
+		ClearCLBuffer gpuPSF, ClearCLBuffer output)
 	{
-
-		// get CLIJ
-		CLIJ clij = CLIJ.getInstance();
 
 		long start = System.currentTimeMillis();
 
 		// create another copy of the image to use as the initial value
-		ClearCLBuffer gpuEstimate = clij.create(gpuImg);
+		ClearCLBuffer gpuEstimate = output;
 		clij.op().copy(gpuImg, gpuEstimate);
 
 		// Use a hack to get long pointers to the CL Buffers, context, queue and
@@ -218,7 +215,7 @@ public class OpenCLFFTUtility {
 	 * @param ops
 	 * @return
 	 */
-	public static ClearCLBuffer runDecon(ClearCLBuffer gpuImg,
+	public static ClearCLBuffer runDecon(CLIJ clij, ClearCLBuffer gpuImg,
 		RandomAccessibleInterval<FloatType> psf, OpService ops)
 	{
 
@@ -228,8 +225,6 @@ public class OpenCLFFTUtility {
 
 		System.out.println("Extended PSF " + extendedPSF.dimension(0) + " " +
 			extendedPSF.dimension(1) + " " + extendedPSF.dimension(2));
-		// get CLIJ
-		CLIJ clij = CLIJ.getInstance();
 
 		long start = System.currentTimeMillis();
 
