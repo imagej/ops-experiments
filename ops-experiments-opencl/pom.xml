@@ -12,7 +12,7 @@
 
 	<groupId>net.imagej</groupId>
 	<artifactId>ops-experiments-opencl</artifactId>
-	<version>0.2.0</version>
+	<version>0.3.0</version>
 
 	<properties>
 		<imagej.app.directory>C:/programs/fiji-win64/Fiji.app/</imagej.app.directory>
