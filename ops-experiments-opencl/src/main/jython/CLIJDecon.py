@@ -2,24 +2,8 @@
 #@ UIService ui
 #@ Dataset data
 #@ Dataset psf
-
-from net.imglib2.type.numeric.real import FloatType
-from net.imglib2.view import Views;
-from net.imagej.ops.experiments import ConvertersUtility
-from net.imagej.ops.experiments.filter.deconvolve import OpenCLFFTUtility
-from net.imglib2.view import Views;
-from net.imglib2 import FinalDimensions;
-
+
 from java.lang import System
-
-
-# preprocessing image and PSF
-psfF=ops.convert().float32(psf);
-imgF=ops.convert().float32(data);
-
-extendedPSF = Views.zeroMin(ops.filter().padShiftFFTKernel(psfF, FinalDimensions([imgF.dimension(0), imgF.dimension(1), imgF.dimension(2)])));
-
-
 
 # init CLIJ and GPU
 from net.haesleinhuepf.clij import CLIJ;
@@ -36,17 +20,14 @@ clij2.clear();
 print "Using GPU: " + clij2.getGPUName();
 
 # transfer image to the GPU
-gpuImg = clij2.push(imgF);
-gpuPSF = clij2.push(extendedPSF);
-
-#debug: show extended psf
-#clij2.show(gpuPSF, "ext gpu psf");
+gpuImg = clij2.push(data);
+gpuPSF = clij2.push(psf);
 
 # measure start time
 start = System.currentTimeMillis();
 
 # create memory for the output image first
-gpuEstimate = clij2.create(gpuImg);
+gpuEstimate = clij2.create(gpuImg.getDimensions(), clij2.Float);
 
 # submit deconvolution task
 DeconvolveFFT.deconvolveFFT(clij2, gpuImg, gpuPSF, gpuEstimate);
