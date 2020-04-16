@@ -102,7 +102,7 @@
 		<plugins>
 
 			<!-- Execute cppbuild.sh to build libraries -->
-			<!--<plugin>
+			<plugin>
 				<artifactId>exec-maven-plugin</artifactId>
 				<groupId>org.codehaus.mojo</groupId>
 				<executions>
@@ -119,7 +119,7 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>-->
+			</plugin>
 
 			<plugin>
 				<artifactId>maven-enforcer-plugin</artifactId>
@@ -135,7 +135,6 @@
 			</plugin>
 
 			<!-- Use JavaCpp to create wrappers to native libraries -->
-			<!--
 			<plugin>
 				<groupId>org.bytedeco</groupId>
 				<artifactId>javacpp</artifactId>
@@ -166,7 +165,6 @@
 					</execution>
 				</executions>
 			</plugin>
--->
 		</plugins>
 	</build>
 </project>
