@@ -178,10 +178,7 @@ public class OpenCLFFTUtility {
 		ClearCLBuffer gpuEstimate = output;
 		clij.op().copy(gpuImg, gpuEstimate);
 
-		// Use a hack to get long pointers to the CL Buffers, context, queue and
-		// device
-		// (TODO: Use a more sensible approach once Robert H's pull request is
-		// released)
+		// Get the CL Buffers, context, queue and device as long native pointers
 		long longPointerImg = ((NativePointerObject) (gpuImg
 			.getPeerPointer().getPointer())).getNativePointer();
 		long longPointerPSF = ((NativePointerObject) (gpuPSF
