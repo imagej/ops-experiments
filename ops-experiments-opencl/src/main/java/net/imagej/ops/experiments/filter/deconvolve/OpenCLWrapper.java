@@ -6,18 +6,13 @@ import org.bytedeco.javacpp.annotation.Platform;
 import org.bytedeco.javacpp.annotation.Properties;
 
 @Properties(value = { @Platform(include = "opencldeconv.h", link = {
-	"opencldeconv", "clFFT" }), 
-	@Platform(value = "windows-x86_64", 
-	linkpath = {"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/lib/x64/", 
-		"C:/OpenCL/clFFT-2.12.2-Windows-x64/lib64/import/"},
-	preloadpath = {"C:/OpenCL/clFFT-2.12.2-Windows-x64/bin/"},
-	preload = {"clFFT" }
-			),
+	"opencldeconv", "clFFT" }), @Platform(value = "windows-x86_64", linkpath = {
+		"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/lib/x64/",
+		"C:/OpenCL/clFFT-2.12.2-Windows-x64/lib64/import/" }, preloadpath = {
+			"C:/OpenCL/clFFT-2.12.2-Windows-x64/bin/" }, preload = { "clFFT" }),
 	@Platform(value = "linux-x86_64",
-		includepath = "/usr/local/cuda-10.0/include/", 
-		linkpath = {"/usr/local/cuda-10.0/lib64/" },
-	preload = {"clFFT" }
-			) })
+		includepath = "/usr/local/cuda-10.0/include/", linkpath = {
+			"/usr/local/cuda-10.0/lib64/" }, preload = { "clFFT" }) })
 public class OpenCLWrapper {
 
 	static {
@@ -26,6 +21,10 @@ public class OpenCLWrapper {
 
 	public static native long fft2d_long(long N1, long N2, long inPointer,
 		long outPointer, long contextPointer, long queuePointer);
+
+	public static native int conv_long(long N0, long N1, long N2, long l_image,
+		long l_psf, long l_output, boolean correlate, long l_context, long l_queue,
+		long l_device);
 
 	public static native int deconv_long(int iterations, long N0, long N1,
 		long N2, long d_image, long d_psf, long d_update, long d_normal,

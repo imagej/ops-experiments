@@ -451,6 +451,155 @@ int fftinv2d(size_t N0, size_t N1, float *h_fft, float * h_out) {
 
 }
 
+int conv_long(size_t N0, size_t N1, size_t N2, long l_image, long l_psf,  long l_output, bool correlate, long l_context, long l_queue, long l_device) {
+
+  printf("enter convolve");
+
+  cl_int ret;
+
+  // most of the inputs are long pointers we'll need to cast them to the right cl types
+
+	// cast long to context 
+	cl_context context = (cl_context)l_context;
+  
+	// cast long to queue 
+	cl_command_queue commandQueue = (cl_command_queue)l_queue;
+	
+  // and long to deviceID
+  cl_device_id deviceID = (cl_device_id)l_device;
+  
+  // cast long pointers to cl_mem 
+	cl_mem d_image = (cl_mem)l_image;
+	cl_mem d_psf =  (cl_mem)l_psf;
+	cl_mem d_output = (cl_mem)l_output;
+
+  // size in spatial domain
+  unsigned long n = N0*N1*N2;
+
+  // size in frequency domain
+  unsigned long nFreq=(N0/2+1)*N1*N2;
+ 
+  // create memory for FFT of estimate and PSF 
+	cl_mem estimateFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
+  printf("\ncreate PSF FFT %d\n", ret);
+ 
+  cl_mem psfFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
+  printf("\ncreate Object FFT %d\n", ret);
+		
+  // Create program from kernel source
+	cl_program program = clCreateProgramWithSource(context, 1, (const char **)&programString, NULL, &ret);	
+  printf("\ncreate program %d\n", ret);
+
+	// Build opencl program
+	ret = clBuildProgram(program, 1, &deviceID, NULL, NULL, NULL);
+
+  printf("\nbuild program %d\n", ret);
+
+  if (ret!=0) {
+    return ret;
+  }
+
+	// Create complex multiply kernel
+	cl_kernel kernelComplexMultiply = clCreateKernel(program, "vecComplexMultiply", &ret);
+  printf("\ncreate KERNEL in GPU %d\n", ret);
+	
+  /* FFT library related declarations */
+  clfftPlanHandle planHandleForward;
+  clfftPlanHandle planHandleBackward;
+  
+  // specify a 3D FFT
+  clfftDim dim = CLFFT_3D;
+  
+  // size of input data
+  size_t clLengths[3] = {N0, N1, N2};
+
+  // strides of the input are distances between elements of first, second and third dimension
+  size_t imgStride[3] = {1, N0, N0*N1};
+  // strides of the FFT (consider that the redundant values in the first dimension are eliminated (google Hermitian symmetry))
+  size_t fftStride[3] = {1, (N0/2+1), (N0/2+1)*N1};
+
+  // Setup clFFT. 
+  clfftSetupData fftSetup;
+  ret = clfftInitSetupData(&fftSetup);
+  printf("clfft init %d\n", ret);
+  ret = clfftSetup(&fftSetup);
+  printf("clfft setup %d\n", ret);
+
+  // Create default forward and backward plans
+  ret = clfftCreateDefaultPlan(&planHandleForward, context, dim, clLengths);
+  ret = clfftCreateDefaultPlan(&planHandleBackward, context, dim, clLengths);
+
+  printf("Create Default Plan %d\n", ret);
+  
+  // Set plan parameters for forward plan
+  ret = clfftSetPlanPrecision(planHandleForward, CLFFT_SINGLE);
+  printf("clfft precision %d\n", ret);
+  ret = clfftSetLayout(planHandleForward, CLFFT_REAL, CLFFT_HERMITIAN_INTERLEAVED);
+  printf("clfft set layout real hermittian interveaved %d\n", ret);
+  ret = clfftSetResultLocation(planHandleForward, CLFFT_OUTOFPLACE);
+  printf("clfft set result location %d\n", ret);
+  ret=clfftSetPlanInStride(planHandleForward, dim, imgStride);
+  printf("clfft set instride %d\n", ret);
+  ret=clfftSetPlanOutStride(planHandleForward, dim, fftStride);
+  printf("clfft set out stride %d\n", ret);
+
+  // Set plan parameters for backward plan
+  ret = clfftSetPlanPrecision(planHandleBackward, CLFFT_SINGLE);
+  printf("clfft precision %d\n", ret);
+  ret = clfftSetLayout(planHandleBackward, CLFFT_HERMITIAN_INTERLEAVED, CLFFT_REAL);
+  printf("clfft set layout real hermittian interveaved %d\n", ret);
+  ret = clfftSetResultLocation(planHandleBackward, CLFFT_OUTOFPLACE);
+  printf("clfft set result location %d\n", ret);
+  ret=clfftSetPlanInStride(planHandleBackward, dim, fftStride);
+  printf("clfft set instride %d\n", ret);
+  ret=clfftSetPlanOutStride(planHandleBackward, dim, imgStride);
+  printf("clfft set out stride %d\n", ret);
+
+  // Bake the plans
+  ret = clfftBakePlan(planHandleForward, 1, &commandQueue, NULL, NULL);
+  printf("Bake forward plan %d\n", ret);
+ // ret = clfftBakePlan(planHandleBackward, 1, &commandQueue, NULL, NULL);
+ // printf("Bake backward plan %d\n", ret);
+  ret = clFinish(commandQueue);
+  printf("Finish Command Queue %d\n", ret);
+
+  // compute item sizes 
+  size_t localItemSize=64;
+	size_t globalItemSize= ceil((N2*N1*N0)/(float)localItemSize)*localItemSize;
+	size_t globalItemSizeFreq = ceil((nFreq)/(float)localItemSize)*localItemSize;
+  printf("nFreq %d glbalItemSizeFreq %d\n",nFreq, globalItemSizeFreq);
+ 
+  // FFT of PSF
+  ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_psf, &psfFFT, NULL);
+  printf("fft psf %d\n", ret);
+  
+  // FFT of estimate
+  ret = clfftEnqueueTransform(planHandleForward, CLFFT_FORWARD, 1, &commandQueue, 0, NULL, NULL, &d_image, &estimateFFT, NULL);
+  printf("fft estimate %d\n", ret);
+
+  // complex multipy estimate FFT and PSF FFT
+  ret = callKernel(kernelComplexMultiply, estimateFFT, psfFFT, estimateFFT, nFreq, commandQueue, globalItemSizeFreq, localItemSize);
+  printf("kernel complex %d\n", ret);
+  
+  // Inverse to get convolved
+  ret = clfftEnqueueTransform(planHandleBackward, CLFFT_BACKWARD, 1, &commandQueue, 0, NULL, NULL, &estimateFFT, &d_output, NULL);
+  printf("fft inverse %d\n", ret);
+ 
+   // Release OpenCL memory objects. 
+  clReleaseMemObject( psfFFT );
+  clReleaseMemObject( estimateFFT );
+
+   // Release the plan. 
+   ret = clfftDestroyPlan( &planHandleForward);
+   ret = clfftDestroyPlan( &planHandleBackward );
+
+   // Release clFFT library. 
+   clfftTeardown( );
+
+  return ret;
+}
+
+
 int conv(size_t N0, size_t N1, size_t N2, float *h_image, float *h_psf, float *h_out) {
 
   cl_platform_id platformId = NULL;
@@ -604,10 +753,9 @@ int conv(size_t N0, size_t N1, size_t N2, float *h_image, float *h_psf, float *h
 
   // copy back to host 
   ret = clEnqueueReadBuffer( commandQueue, d_out, CL_TRUE, 0, N0*N1*N2*sizeof(float), h_out, 0, NULL, NULL );
-  
+
   return 0;
 }
-
 
 int deconv_long(int iterations, size_t N0, size_t N1, size_t N2, long l_observed, long l_psf, long l_estimate, long l_normal, long l_context, long l_queue, long l_device) {
 
@@ -619,12 +767,16 @@ int deconv_long(int iterations, size_t N0, size_t N1, size_t N2, long l_observed
 	// cast long to queue 
 	cl_command_queue commandQueue = (cl_command_queue)l_queue;
 	
-  // create device memory buffers for each array
+  // cast long pointers to cl_mem 
 	cl_mem d_observed = (cl_mem)l_observed;
 	cl_mem d_psf =  (cl_mem)l_psf;
 	cl_mem d_estimate = (cl_mem)l_estimate; 
   cl_device_id deviceID = (cl_device_id)l_device;
+
+  // size in spatial domain
   unsigned long n = N0*N1*N2;
+
+  // size in frequency domain
   unsigned long nFreq=(N0/2+1)*N1*N2;
 
   // create memory for reblurred 	
@@ -633,9 +785,9 @@ int deconv_long(int iterations, size_t N0, size_t N1, size_t N2, long l_observed
  
   // create memory for FFT of estimate and PSF 
 	cl_mem estimateFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
-  cl_mem psfFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
-  
   printf("\ncreate PSF FFT %d\n", ret);
+ 
+  cl_mem psfFFT = clCreateBuffer(context, CL_MEM_READ_WRITE, 2*nFreq * sizeof(float), NULL, &ret);
   printf("\ncreate Object FFT %d\n", ret);
 	
   // Create kernels 	
@@ -643,7 +795,8 @@ int deconv_long(int iterations, size_t N0, size_t N1, size_t N2, long l_observed
 	cl_program program = clCreateProgramWithSource(context, 1, (const char **)&programString, NULL, &ret);	
 
   printf("\ncreate program %d\n", ret);
-	// Build program
+
+	// Build opencl program
 	ret = clBuildProgram(program, 1, &deviceID, NULL, NULL, NULL);
 
   printf("\nbuild program %d\n", ret);
@@ -651,6 +804,7 @@ int deconv_long(int iterations, size_t N0, size_t N1, size_t N2, long l_observed
   if (ret!=0) {
     return ret;
   }
+
 	// Create complex multiply kernel
 	cl_kernel kernelComplexMultiply = clCreateKernel(program, "vecComplexMultiply", &ret);
   printf("\ncreate KERNEL in GPU %d\n", ret);

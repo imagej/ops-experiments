@@ -12,6 +12,7 @@
 extern "C" {
   void test();
   int conv(size_t N1, size_t N2, size_t N3, float *h_image, float *h_psf, float *h_out);
+  int conv_long(size_t N0, size_t N1, size_t N2, long l_image, long l_psf,  long l_output, bool correlate, long l_context, long l_queue, long l_device);
   int deconv(int iterations, size_t N1, size_t N2, size_t N3, float *h_image, float *h_psf, float *h_out, float * normal);
   int deconv_long(int iterations, size_t N0, size_t N1, size_t N2, long d_image, long d_psf, long d_update, long d_normal, long l_context, long l_queuee, long l_device); 
   int fft2d(size_t N1, size_t N2, float *h_image, float * h_out);
