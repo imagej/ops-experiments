@@ -57,6 +57,39 @@ public class DeconvolveFFT extends AbstractCLIJ2Plugin implements CLIJMacroPlugi
         return true;
     }
 
+    
+    public static boolean convolveFFT(CLIJ2 clij2, ClearCLBuffer input, ClearCLBuffer convolution_kernel, ClearCLBuffer destination) {
+
+        ClearCLBuffer input_float = input;
+        if (input_float.getNativeType() != NativeTypeEnum.Float) {
+            input_float = clij2.create(input.getDimensions(), NativeTypeEnum.Float);
+            clij2.copy(input, input_float);
+        }
+
+        ClearCLBuffer convolution_kernel_float = convolution_kernel;
+        if (convolution_kernel.getNativeType() != NativeTypeEnum.Float) {
+            convolution_kernel_float = clij2.create(convolution_kernel.getDimensions(), NativeTypeEnum.Float);
+            clij2.copy(convolution_kernel, convolution_kernel_float);
+        }
+
+        ClearCLBuffer extendedKernel_float = clij2.create(input_float);
+        pad(clij2, input_float, convolution_kernel_float, extendedKernel_float);
+        
+        OpenCLFFTUtility.runConvolve(clij2.getCLIJ(), input_float, extendedKernel_float, destination);
+        
+        clij2.release(extendedKernel_float);
+
+        if (input_float != input) {
+            clij2.release(input_float);
+        }
+
+        if (convolution_kernel_float != convolution_kernel) {
+            clij2.release(convolution_kernel_float);
+        }
+
+        return true;
+    }
+
     public static void pad(CLIJ2 clij2, ClearCLBuffer input, ClearCLBuffer convolution_kernel, ClearCLBuffer extendedKernel) {
         long psfHalfWidth = convolution_kernel.getWidth() / 2;
         long psfHalfHeight = convolution_kernel.getHeight() / 2;

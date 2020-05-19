@@ -262,6 +262,50 @@ public class OpenCLFFTUtility {
 		return gpuEstimate;
 	}
 
+	/**
+	 * run convolution 
+	 * 
+	 * @param gpuImg - need to prepad to supported FFT size (see padInputFFTAndPush)
+	 * @param gpuPSF - need to prepad to supported FFT size (see padKernelFFTAndPush)
+	 * @return
+	 */
+	public static ClearCLBuffer runConvolve(CLIJ clij, ClearCLBuffer gpuImg,
+		ClearCLBuffer gpuPSF, ClearCLBuffer output)
+	{
+
+		long start = System.currentTimeMillis();
+
+		// create another copy of the image to use as the initial value
+		ClearCLBuffer gpuEstimate = output;
+		clij.op().copy(gpuImg, gpuEstimate);
+
+		// Get the CL Buffers, context, queue and device as long native pointers
+		long longPointerImg = ((NativePointerObject) (gpuImg
+			.getPeerPointer().getPointer())).getNativePointer();
+		long longPointerPSF = ((NativePointerObject) (gpuPSF
+			.getPeerPointer().getPointer())).getNativePointer();
+		long longPointerOutput = ((NativePointerObject) (gpuEstimate
+			.getPeerPointer().getPointer())).getNativePointer();
+		long l_context = ((NativePointerObject) (clij.getClearCLContext()
+			.getPeerPointer().getPointer())).getNativePointer();
+		long l_queue = ((NativePointerObject) (clij.getClearCLContext()
+			.getDefaultQueue().getPeerPointer().getPointer())).getNativePointer();
+		long l_device = ((NativePointerObject) clij.getClearCLContext()
+			.getDevice().getPeerPointer().getPointer()).getNativePointer();
+
+		// call the decon wrapper (100 iterations of RL)
+		OpenCLWrapper.conv_long(gpuImg.getDimensions()[0], gpuImg
+			.getDimensions()[1], gpuImg.getDimensions()[2], longPointerImg,
+			longPointerPSF, longPointerOutput, true, l_context, l_queue,
+			l_device);
+
+		long finish = System.currentTimeMillis();
+
+		System.out.println("OpenCL Decon time " + (finish - start));
+
+		return gpuEstimate;
+	}
+
 	static Img<ComplexFloatType> copyAsComplex(
 		RandomAccessibleInterval<FloatType> in)
 	{
