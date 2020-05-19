@@ -89,9 +89,18 @@ public class InteractiveDeconvolveFFTTest<T extends RealType<T> & NativeType<T>>
 
 		// create output
 		ClearCLBuffer output = clij2.create(inputGPU);
-
-		// deconvolve
-		DeconvolveFFT.deconvolveFFT(clij2, inputGPU, psfGPU, output);
+	
+		boolean deconvolve = false;
+		
+		if (deconvolve) {
+			// deconvolve
+			DeconvolveFFT.deconvolveFFT(clij2, inputGPU, psfGPU, output);
+		}
+		else {
+			// convolve
+			DeconvolveFFT.convolveFFT(clij2, inputGPU, psfGPU, output);
+		}
+		
 		
 		// get deconvolved as an RAI
 		RandomAccessibleInterval deconv=clij2.pullRAI(output);
@@ -110,7 +119,7 @@ public class InteractiveDeconvolveFFTTest<T extends RealType<T> & NativeType<T>>
 			interval)));
 		
 		//clij2.show(output, "output");
-		ij.ui().show("deconvolved and unpadded", outputRAI);
+		ij.ui().show("output", outputRAI);
 
 	}
 }
