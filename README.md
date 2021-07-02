@@ -1,3 +1,5 @@
+[![](https://github.com/imagej/ops-experiments/actions/workflows/build-main.yml/badge.svg)](https://github.com/imagej/ops-experiments/actions/workflows/build-main.yml)
+
 ## Overview
 
 This is an experimental repository for Ops developers
