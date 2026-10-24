@@ -7,6 +7,7 @@ target/
 
 # Eclipse #
 .classpath
+.factorypath
 .project
 .settings/
 /.metadata
@@ -49,3 +50,6 @@ ops-experiments-main/native/lib/
 ops-experiments-mkl/native/lib/
 
 release/
+
+# IntelliJ #
+.idea/
